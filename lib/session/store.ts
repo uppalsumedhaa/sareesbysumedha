@@ -2,12 +2,17 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   Duration,
+  Mood,
   Occasion,
   ReuseIntent,
   SessionState,
+  TradContempLevel,
   VenueType,
+  VetoColor,
   WeddingRole,
 } from './types';
+
+export const MAX_MOODS = 3;
 
 interface SessionActions {
   setOccasion: (occasion: Occasion) => void;
@@ -18,6 +23,9 @@ interface SessionActions {
   setEventMonth: (month: string) => void;
   setVenueType: (venue: VenueType) => void;
   setDuration: (duration: Duration) => void;
+  toggleMood: (mood: Mood) => void;
+  setTradContempLevel: (level: TradContempLevel) => void;
+  toggleColorVeto: (color: VetoColor) => void;
   reset: () => void;
 }
 
@@ -30,6 +38,9 @@ const EMPTY: SessionState = {
   eventMonth: undefined,
   venueType: undefined,
   duration: undefined,
+  moods: undefined,
+  tradContempLevel: undefined,
+  colorVetoes: undefined,
 };
 
 function isWedding(o: Occasion | undefined): boolean {
@@ -55,6 +66,26 @@ export const useSession = create<SessionState & SessionActions>()(
       setEventMonth: (eventMonth) => set({ eventMonth }),
       setVenueType: (venueType) => set({ venueType }),
       setDuration: (duration) => set({ duration }),
+      toggleMood: (mood) =>
+        set((prev) => {
+          const current = prev.moods ?? [];
+          if (current.includes(mood)) {
+            return { moods: current.filter((m) => m !== mood) };
+          }
+          if (current.length >= MAX_MOODS) {
+            return {};
+          }
+          return { moods: [...current, mood] };
+        }),
+      setTradContempLevel: (tradContempLevel) => set({ tradContempLevel }),
+      toggleColorVeto: (color) =>
+        set((prev) => {
+          const current = prev.colorVetoes ?? [];
+          if (current.includes(color)) {
+            return { colorVetoes: current.filter((c) => c !== color) };
+          }
+          return { colorVetoes: [...current, color] };
+        }),
       reset: () => set({ ...EMPTY }),
     }),
     {
@@ -69,6 +100,9 @@ export const useSession = create<SessionState & SessionActions>()(
         eventMonth: s.eventMonth,
         venueType: s.venueType,
         duration: s.duration,
+        moods: s.moods,
+        tradContempLevel: s.tradContempLevel,
+        colorVetoes: s.colorVetoes,
       }),
     },
   ),

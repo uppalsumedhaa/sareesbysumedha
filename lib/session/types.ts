@@ -16,6 +16,39 @@ export type VenueType = 'indoor' | 'outdoor' | 'mixed';
 
 export type Duration = 'couple-hours' | 'half-day' | 'all-day';
 
+export type Mood =
+  | 'minimal'
+  | 'soft-romantic'
+  | 'maximalist'
+  | 'old-money'
+  | 'festive-loud'
+  | 'power-dresser'
+  | 'boho'
+  | 'preppy'
+  | 'old-world'
+  | 'contemporary-edgy'
+  | 'sporty-modern'
+  | 'earthy-artisan';
+
+export type TradContempLevel =
+  | 'classic'
+  | 'classic-twist'
+  | 'balanced'
+  | 'modern-heritage'
+  | 'fully-contemporary';
+
+export type VetoColor =
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'blue'
+  | 'purple'
+  | 'pink'
+  | 'brown'
+  | 'black'
+  | 'white';
+
 export interface SessionState {
   // Stage 1
   occasion?: Occasion;
@@ -27,4 +60,8 @@ export interface SessionState {
   eventMonth?: string; // YYYY-MM
   venueType?: VenueType;
   duration?: Duration;
+  // Stage 3
+  moods?: Mood[];
+  tradContempLevel?: TradContempLevel;
+  colorVetoes?: VetoColor[];
 }

@@ -8,8 +8,7 @@ export default function ClimatePage() {
   return (
     <ClimateForm
       onContinue={() => {
-        // Stage 3 (vibe) doesn't exist yet. Send back to welcome for now.
-        router.push('/');
+        router.push('/vibe');
       }}
     />
   );

@@ -1,8 +1,11 @@
 import type {
   Duration,
+  Mood,
   Occasion,
   ReuseIntent,
+  TradContempLevel,
   VenueType,
+  VetoColor,
   WeddingRole,
 } from '@/lib/session/types';
 
@@ -79,6 +82,136 @@ export const climateCopy = {
     { value: 'all-day', label: 'all day' },
   ] as const satisfies ReadonlyArray<{ value: Duration; label: string }>,
 };
+
+export const vibeCopy = {
+  heading: 'what pulls you in?',
+  subhead: "trust your gut. there's no wrong answer.",
+  moodSectionLabel: 'pick 2 or 3 that feel like you',
+  moodCountSuffix: '/ 3',
+  tradContempHeading: 'where are you on this?',
+  tradContempOptions: [
+    { value: 'classic', label: 'classic', hint: 'full-on traditional' },
+    {
+      value: 'classic-twist',
+      label: 'classic, with a twist',
+      hint: 'traditional silhouette, a small modern flourish',
+    },
+    { value: 'balanced', label: 'balanced', hint: 'even mix of both worlds' },
+    {
+      value: 'modern-heritage',
+      label: 'modern, rooted in heritage',
+      hint: 'contemporary, but with clear roots',
+    },
+    {
+      value: 'fully-contemporary',
+      label: 'fully contemporary',
+      hint: 'no rules, modern through and through',
+    },
+  ] as const satisfies ReadonlyArray<{
+    value: TradContempLevel;
+    label: string;
+    hint: string;
+  }>,
+  colorHeading: "any colors you won't wear?",
+  colorSubhead: 'tap all that apply. optional.',
+};
+
+export const moodTiles = [
+  {
+    value: 'minimal',
+    label: 'minimal',
+    bg: 'linear-gradient(135deg, #F5EFE0 0%, #D6C9AD 100%)',
+    fg: 'ink',
+  },
+  {
+    value: 'soft-romantic',
+    label: 'soft-romantic',
+    bg: 'linear-gradient(135deg, #F7E0D9 0%, #D9A3A3 100%)',
+    fg: 'ink',
+  },
+  {
+    value: 'maximalist',
+    label: 'maximalist',
+    bg: 'linear-gradient(135deg, #8E1929 0%, #D9A441 55%, #7A7A3D 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'old-money',
+    label: 'old-money',
+    bg: 'linear-gradient(135deg, #2A3C2F 0%, #141A14 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'festive-loud',
+    label: 'festive-loud',
+    bg: 'linear-gradient(135deg, #C41E3A 0%, #E8801E 50%, #D45C7E 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'power-dresser',
+    label: 'power-dresser',
+    bg: 'linear-gradient(135deg, #2E2A28 0%, #0E0A08 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'boho',
+    label: 'boho',
+    bg: 'linear-gradient(135deg, #C8764F 0%, #B8843A 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'preppy',
+    label: 'preppy',
+    bg: 'linear-gradient(135deg, #1E3A6A 0%, #F0E3C4 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'old-world',
+    label: 'old-world',
+    bg: 'linear-gradient(135deg, #A88A5A 0%, #5C4630 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'contemporary-edgy',
+    label: 'contemporary-edgy',
+    bg: 'linear-gradient(135deg, #1C1412 0%, #8E1929 100%)',
+    fg: 'cream',
+  },
+  {
+    value: 'sporty-modern',
+    label: 'sporty-modern',
+    bg: 'linear-gradient(135deg, #E5E2DC 0%, #B4B0A8 100%)',
+    fg: 'ink',
+  },
+  {
+    value: 'earthy-artisan',
+    label: 'earthy-artisan',
+    bg: 'linear-gradient(135deg, #7A7A3D 0%, #4A3826 100%)',
+    fg: 'cream',
+  },
+] as const satisfies ReadonlyArray<{
+  value: Mood;
+  label: string;
+  bg: string;
+  fg: 'ink' | 'cream';
+}>;
+
+export const vetoColors = [
+  { value: 'red', label: 'red', hex: '#C41E3A' },
+  { value: 'orange', label: 'orange', hex: '#E8801E' },
+  { value: 'yellow', label: 'yellow', hex: '#F4C430' },
+  { value: 'green', label: 'green', hex: '#2D6B3F' },
+  { value: 'blue', label: 'blue', hex: '#1E3A8A' },
+  { value: 'purple', label: 'purple', hex: '#6B2D6B' },
+  { value: 'pink', label: 'pink', hex: '#D45C7E' },
+  { value: 'brown', label: 'brown', hex: '#6B4F2C' },
+  { value: 'black', label: 'black', hex: '#1C1412' },
+  { value: 'white', label: 'white', hex: '#F5F5F5' },
+] as const satisfies ReadonlyArray<{
+  value: VetoColor;
+  label: string;
+  hex: string;
+}>;
 
 export const navCopy = {
   back: 'back',
