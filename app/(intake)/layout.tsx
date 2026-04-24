@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { welcomeCopy, navCopy } from '@/lib/copy/onboarding';
 
-export default function OnboardingLayout({
+export default function IntakeLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -27,14 +26,14 @@ export default function OnboardingLayout({
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
-          <span>{navCopy.back}</span>
+          <span>back</span>
         </Link>
         <Link
           href="/"
           className="inline-flex items-baseline font-serif text-xl lowercase tracking-tight text-ink"
           aria-label="zarf."
         >
-          {welcomeCopy.wordmark}
+          zarf
           <span
             aria-hidden="true"
             className="ml-[0.06em] inline-block h-[0.16em] w-[0.16em] rounded-full bg-bindi"

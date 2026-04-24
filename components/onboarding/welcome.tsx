@@ -77,7 +77,7 @@ export function Welcome() {
       <footer className="relative z-10 px-6 pb-10 sm:px-10 sm:pb-14">
         <div className="mx-auto flex w-full max-w-prose flex-col gap-5">
           <Link
-            href="/occasion"
+            href="/use-case"
             className="animate-reveal group inline-flex w-full items-center justify-center gap-3 rounded-full bg-bindi px-7 py-5 text-lg font-medium text-cream shadow-[0_10px_30px_-12px_rgba(92,14,24,0.45)] transition-all duration-300 hover:bg-bindi-deep hover:shadow-[0_14px_34px_-10px_rgba(92,14,24,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bindi focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             style={{ animationDelay: '1350ms' }}
           >
