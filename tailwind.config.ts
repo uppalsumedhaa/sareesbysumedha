@@ -12,7 +12,7 @@ const config: Config = {
           DEFAULT: '#8E1929',
           deep: '#5C0E18',
         },
-        cream: '#F7F1E6',
+        cream: '#F0E3C4',
         ink: '#1C1412',
         muted: '#6B5A54',
       },

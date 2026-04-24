@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Fraunces, Instrument_Sans } from 'next/font/google';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -8,9 +8,10 @@ const fraunces = Fraunces({
   weight: ['400', '500', '600'],
 });
 
-const inter = Inter({
+const instrumentSans = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
+  weight: ['400', '500', '600'],
 });
 
 export const metadata: Metadata = {
@@ -25,8 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
-      <body className="min-h-screen">{children}</body>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${instrumentSans.variable}`}
+    >
+      <body className="min-h-[100svh]">{children}</body>
     </html>
   );
 }
