@@ -9,22 +9,20 @@ export type UseCase = 'everyday_office' | 'everyday_home' | 'special_occasion';
 
 // Remaining intake answer types. UIs for these come in later slices; types
 // are declared here so the answer shape is one import away across the app.
-export type Season = 'summer' | 'monsoon' | 'winter' | 'festive_season';
+// Season is not asked: it's derived from city + month via lib/weather.
 export type TimeOfDay = 'day' | 'night';
 export type SkinDepth = 'fair' | 'wheatish' | 'deep';
 export type JewelryLean = 'gold' | 'silver' | 'either';
 export type DrapingSkill = 'hassle_free' | 'medium_pro' | 'pro';
-export type AgeBracket = 'under_30' | '30_to_49' | '50_plus';
 
 export interface IntakeAnswers {
   useCase?: UseCase;
   city?: string;
-  season?: Season;
+  month?: number; // 1-12
   timeOfDay?: TimeOfDay;
   skinDepth?: SkinDepth;
   jewelryLean?: JewelryLean;
   drapingSkill?: DrapingSkill;
-  ageBracket?: AgeBracket;
   budgetInr?: number;
 }
 
@@ -36,6 +34,7 @@ export const intakeNav = {
 
 export const useCaseCopy = {
   stepLabel: 'question 1 of 7',
+  // Question count is 7. If you change it, update every other stepLabel too.
   heading: "first, where's this saree going?",
   subhead:
     "so i can narrow in on fabric and weight that actually suit the day.",

@@ -8,22 +8,23 @@ Handoff notes as of 2026-04-25. Read this alongside `PRD.md`, `CLAUDE.md`, and t
 
 ### Intake inputs (the locked model)
 
-Eight inputs decide a saree recommendation. Every question in the flow must map to one of these eight. Do not add new dimensions without explicit approval.
+Seven inputs decide a saree recommendation. Every question in the flow must map to one of these seven. Do not add new dimensions without explicit approval.
 
 1. Use case: `everyday_office` | `everyday_home` | `special_occasion`
-2. Location and season (e.g., Bangalore, summer)
+2. City + month. Season is **not** asked. Climate (avg temp, humidity, monthly precipitation, bucket) is fetched from Open-Meteo at submit time using the city's geocoded lat/lon and the answered month. See `lib/weather/climate.ts`.
 3. Time of day: `day` | `night`
 4. Complexion depth: `fair` | `wheatish` | `deep`
 5. Undertone: asked via a jewelry-test-style question (yellow gold vs silver). Fallback to `neutral` when uncertain. Never surface to user as jargon.
 6. Draping skill: `hassle_free` | `medium_pro` | `pro`
 7. Budget (INR max). Drives substitution within fabric families (pure Kanjivaram becomes tested-zari, original Ikkat becomes semi-Ikkat).
-8. Age bracket: `under_30` | `30_to_49` | `50_plus`. Stylistic cutoffs, not demographic. Shifts fabric weight, drape structure, and trend-vs-heritage leaning inside a given use-case + budget. Proposed cutoffs; confirm with Sumi before building the UI.
 
 **Cut from earlier drafts. Do not re-add without approval:**
 - Drape volume preference (`close` | `stand_away`) — body-type proxy, did not move the JPMC result.
 - Solids vs prints — taste, not a filter. Retailer stock naturally carries both.
 - Vibe / moodboard — belongs in a styling layer, not in saree selection.
 - Wedding guest-coordination ("what will others wear") — too situational.
+- Age bracket — flagged briefly, then cut. The rubric doesn't currently use age and the question wasn't earning its slot. Bring back only if a stylist signal emerges that age (not skill, not occasion) is the actual driver.
+- Asking the user to name a season — derived from city + month via Open-Meteo instead, so we don't make the user guess what "monsoon" means in their city.
 
 ### Results page
 
@@ -89,6 +90,7 @@ Full brief saved at `lib/color/color-theory.md`. Nine complexion buckets (3 dept
 - `app/api/dev/rubric/route.ts`, dev API endpoint that runs the rubric for a hard-coded JPMC-friend profile and returns JSON.
 - `app/dev/results/page.tsx`, the user-facing results page for the JPMC profile. Wired to three real, in-stock sarees (Soch magenta chiffon ombre, Suta Ode To Greens mulmul, Soch emerald chanderi) with product images and affiliate-ready URLs. Reasoning lines written in elder-sister voice.
 - `app/(intake)/...`, the new intake flow. One route per question; shared layout in `app/(intake)/layout.tsx`. Question 1 (use case) is live at `/use-case`. Remaining six questions to be built next.
+- `lib/weather/climate.ts`, server-side climate lookup. Geocodes a city via Open-Meteo (no API key), pulls the previous-year monthly archive, and returns `{avgTempC, avgHumidity, precipMm, rainy, bucket}` where bucket is one of `hot_humid` | `hot_dry` | `temperate` | `cool`. Dev endpoint at `app/api/dev/climate/route.ts` for spot checks.
 - Old stage pages and forms (the pre-lock 5-stage flow) were deleted. The new intake is the only flow.
 
 ---
@@ -103,19 +105,18 @@ Full brief saved at `lib/color/color-theory.md`. Nine complexion buckets (3 dept
 
 ## Pending
 
-### Immediate: build the remaining seven intake questions
+### Immediate: build the remaining six intake questions
 
 Q1 (use case) is live. Still to build, in order:
 
-2. `/where` — city + month (location + season)
+2. `/where` — city (free text, geocoded) + month (1–12). Climate fetched at submit time from `lib/weather/climate.ts`.
 3. `/time-of-day` — day | night
 4. `/skin` — fair | wheatish | deep
 5. `/jewelry` — gold | silver | either (jewelry-test proxy for undertone)
 6. `/draping` — hassle-free | medium-pro | pro
-7. `/age` — under 30 | 30–49 | 50+
-8. `/budget` — INR slider
+7. `/budget` — INR slider
 
-Order is provisional. `/age` may move earlier if it turns out to shape more of the rubric than currently assumed.
+Cadence: build one screen, push, get Sumi's feedback, then build the next.
 
 Each question is its own route under `app/(intake)/`. After Q7, intake submits to a new route (TBD `/results`) that runs the rubric against the collected inputs and renders the three-card output currently living at `/dev/results`.
 
