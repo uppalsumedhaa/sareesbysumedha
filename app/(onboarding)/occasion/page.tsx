@@ -8,8 +8,7 @@ export default function OccasionPage() {
   return (
     <OccasionForm
       onContinue={() => {
-        // Stage 2 (climate) doesn't exist yet — send back to welcome for now.
-        router.push('/');
+        router.push('/climate');
       }}
     />
   );

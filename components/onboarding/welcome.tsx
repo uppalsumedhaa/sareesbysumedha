@@ -4,7 +4,7 @@ import { welcomeCopy } from '@/lib/copy/onboarding';
 export function Welcome() {
   return (
     <main className="relative flex min-h-[100svh] flex-col overflow-hidden bg-cream">
-      {/* Big bindi — hero shape, anchored top-right, bleeding off canvas */}
+      {/* Big bindi: hero shape, anchored top-right, bleeding off canvas */}
       <div
         aria-hidden="true"
         className="animate-bindi pointer-events-none absolute right-[-24%] top-[-18%] z-0 h-[110vw] w-[110vw] sm:right-[-12%] sm:top-[-24%] sm:h-[64vw] sm:w-[64vw]"

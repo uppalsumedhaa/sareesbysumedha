@@ -15,7 +15,7 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'zarf — sarees are easier than they look',
+  title: 'zarf · sarees are easier than they look',
   description:
     'figure out what to buy, how to wear it, and whether mum will approve.',
 };

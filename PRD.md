@@ -144,7 +144,7 @@ Capture event type, role, reuse intent, and budget. These are the hardest filter
   - Party / cocktail / reception
   - Not sure yet — just browsing
 
-- **What's your role?** (shown only if wedding selected — captures whether it's your own wedding or someone else's)
+- **What's your role?** (shown only if wedding selected. captures whether it's your own wedding or someone else's)
   - Bride
   - Bridesmaid / close friend
   - Family of bride or groom

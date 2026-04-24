@@ -51,7 +51,7 @@ export function OccasionForm({ onContinue }: OccasionFormProps) {
 
   return (
     <div className="flex flex-col gap-12 pb-16">
-      {/* Q1 — occasion */}
+      {/* Q1: occasion */}
       <section className="flex flex-col gap-4">
         <div>
           <h1 className="font-serif text-[clamp(1.875rem,6vw,3rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
@@ -66,7 +66,7 @@ export function OccasionForm({ onContinue }: OccasionFormProps) {
         />
       </section>
 
-      {/* Q2 — wedding role (conditional) */}
+      {/* Q2: wedding role (conditional) */}
       {weddingSelected && (
         <section className="flex flex-col gap-4">
           <h2 className="font-serif text-[clamp(1.5rem,4.5vw,2.25rem)] font-medium leading-tight tracking-tight text-ink">
@@ -81,7 +81,7 @@ export function OccasionForm({ onContinue }: OccasionFormProps) {
         </section>
       )}
 
-      {/* Q3 — reuse intent */}
+      {/* Q3: reuse intent */}
       <section className="flex flex-col gap-4">
         <h2 className="font-serif text-[clamp(1.5rem,4.5vw,2.25rem)] font-medium leading-tight tracking-tight text-ink">
           {reuseCopy.heading}
@@ -93,7 +93,7 @@ export function OccasionForm({ onContinue }: OccasionFormProps) {
         />
       </section>
 
-      {/* Q4 — budget */}
+      {/* Q4: budget */}
       <section className="flex flex-col gap-5">
         <h2 className="font-serif text-[clamp(1.5rem,4.5vw,2.25rem)] font-medium leading-tight tracking-tight text-ink">
           {budgetCopy.heading}
