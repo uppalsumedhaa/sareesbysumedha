@@ -213,6 +213,30 @@ export const vetoColors = [
   hex: string;
 }>;
 
+export const photoCopy = {
+  entryHeading: "want us to suggest colors that'll look great on you?",
+  entrySubhead: 'upload a selfie. we just look at your coloring, nothing weird.',
+  uploadLabel: 'tap to upload a photo',
+  uploadHint: 'a clear, well-lit selfie works best',
+  skipLabel: 'skip, pick colors myself',
+  privacyNote: "the photo stays in your browser. we never upload or store it.",
+  processingLabel: 'looking at your coloring',
+  resultHeading: 'these tend to work beautifully with your coloring.',
+  resultHint:
+    "it's a starting point. you can ignore anything that doesn't feel like you.",
+  undertoneLabels: {
+    warm: 'warm undertone',
+    cool: 'cool undertone',
+    neutral: 'neutral undertone',
+  },
+  contrastLabels: {
+    high: 'high contrast',
+    medium: 'medium contrast',
+    low: 'soft contrast',
+  },
+  retakeLabel: 'try another photo',
+};
+
 export const navCopy = {
   back: 'back',
   continue: 'continue',

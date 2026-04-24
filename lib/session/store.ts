@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
+  ColorAnalysis,
   Duration,
   Mood,
   Occasion,
@@ -26,6 +27,8 @@ interface SessionActions {
   toggleMood: (mood: Mood) => void;
   setTradContempLevel: (level: TradContempLevel) => void;
   toggleColorVeto: (color: VetoColor) => void;
+  setColorAnalysis: (result: ColorAnalysis) => void;
+  clearColorAnalysis: () => void;
   reset: () => void;
 }
 
@@ -41,6 +44,9 @@ const EMPTY: SessionState = {
   moods: undefined,
   tradContempLevel: undefined,
   colorVetoes: undefined,
+  undertone: undefined,
+  contrast: undefined,
+  suggestedPalette: undefined,
 };
 
 function isWedding(o: Occasion | undefined): boolean {
@@ -86,6 +92,14 @@ export const useSession = create<SessionState & SessionActions>()(
           }
           return { colorVetoes: [...current, color] };
         }),
+      setColorAnalysis: ({ undertone, contrast, palette }) =>
+        set({ undertone, contrast, suggestedPalette: palette }),
+      clearColorAnalysis: () =>
+        set({
+          undertone: undefined,
+          contrast: undefined,
+          suggestedPalette: undefined,
+        }),
       reset: () => set({ ...EMPTY }),
     }),
     {
@@ -103,6 +117,9 @@ export const useSession = create<SessionState & SessionActions>()(
         moods: s.moods,
         tradContempLevel: s.tradContempLevel,
         colorVetoes: s.colorVetoes,
+        undertone: s.undertone,
+        contrast: s.contrast,
+        suggestedPalette: s.suggestedPalette,
       }),
     },
   ),

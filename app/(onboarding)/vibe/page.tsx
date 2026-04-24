@@ -8,8 +8,7 @@ export default function VibePage() {
   return (
     <VibeForm
       onContinue={() => {
-        // Stage 4 (photo) doesn't exist yet. Send back to welcome for now.
-        router.push('/');
+        router.push('/photo');
       }}
     />
   );

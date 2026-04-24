@@ -49,6 +49,16 @@ export type VetoColor =
   | 'black'
   | 'white';
 
+export type Undertone = 'warm' | 'cool' | 'neutral';
+
+export type Contrast = 'high' | 'medium' | 'low';
+
+export interface ColorAnalysis {
+  undertone: Undertone;
+  contrast: Contrast;
+  palette: string[]; // array of hex colors, 8 to 12 entries
+}
+
 export interface SessionState {
   // Stage 1
   occasion?: Occasion;
@@ -64,4 +74,8 @@ export interface SessionState {
   moods?: Mood[];
   tradContempLevel?: TradContempLevel;
   colorVetoes?: VetoColor[];
+  // Stage 4
+  undertone?: Undertone;
+  contrast?: Contrast;
+  suggestedPalette?: string[];
 }
