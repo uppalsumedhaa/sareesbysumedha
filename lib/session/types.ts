@@ -53,6 +53,17 @@ export type Undertone = 'warm' | 'cool' | 'neutral';
 
 export type Contrast = 'high' | 'medium' | 'low';
 
+export type BlousePreference = 'traditional' | 'crop-top' | 'both';
+
+export type DrapeStyle = 'nivi' | 'regional' | 'pant-saree' | 'unsure';
+
+export type AccessoriesVibe =
+  | 'temple'
+  | 'oxidized'
+  | 'minimal-gold'
+  | 'statement'
+  | 'none';
+
 export interface ColorAnalysis {
   undertone: Undertone;
   contrast: Contrast;
@@ -78,4 +89,8 @@ export interface SessionState {
   undertone?: Undertone;
   contrast?: Contrast;
   suggestedPalette?: string[];
+  // Stage 5
+  blousePreference?: BlousePreference;
+  drapeStyle?: DrapeStyle;
+  accessoriesVibe?: AccessoriesVibe;
 }

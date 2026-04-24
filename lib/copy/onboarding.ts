@@ -1,4 +1,7 @@
 import type {
+  AccessoriesVibe,
+  BlousePreference,
+  DrapeStyle,
   Duration,
   Mood,
   Occasion,
@@ -237,7 +240,57 @@ export const photoCopy = {
   retakeLabel: 'try another photo',
 };
 
+export const stylingCopy = {
+  heading: 'a few last things.',
+  subhead: 'these nudge the shortlist in the right direction.',
+  blouseHeading: 'blouse or crop top?',
+  blouseOptions: [
+    { value: 'traditional', label: 'traditional blouse', hint: 'the classic fitted cut' },
+    { value: 'crop-top', label: 'crop top / fusion', hint: 'modern, more range of movement' },
+    { value: 'both', label: "show me both, i'm open", hint: 'we pair sarees with whichever fits the look' },
+  ] as const satisfies ReadonlyArray<{
+    value: BlousePreference;
+    label: string;
+    hint: string;
+  }>,
+  drapeHeading: 'how do you want to drape it?',
+  drapeOptions: [
+    { value: 'nivi', label: 'classic (nivi)', hint: 'pleats in front, pallu over the left shoulder' },
+    { value: 'regional', label: 'regional', hint: 'bengali, gujarati, maharashtrian, pick later' },
+    { value: 'pant-saree', label: 'pant-saree or pre-stitched', hint: "easiest, no pleats to fuss over" },
+    { value: 'unsure', label: 'not sure, suggest what works', hint: "we'll pick based on the saree" },
+  ] as const satisfies ReadonlyArray<{
+    value: DrapeStyle;
+    label: string;
+    hint: string;
+  }>,
+  accessoriesHeading: "what's the accessories vibe?",
+  accessoriesOptions: [
+    { value: 'temple', label: 'temple / traditional', hint: 'gold, ornate, special-occasion' },
+    { value: 'oxidized', label: 'oxidized / silver', hint: 'craft-forward, a bit earthy' },
+    { value: 'minimal-gold', label: 'minimal gold', hint: 'small studs, thin bangles, nothing loud' },
+    { value: 'statement', label: 'statement / bold', hint: 'one big piece doing all the work' },
+    { value: 'none', label: 'none. the saree is the outfit', hint: 'let the drape speak' },
+  ] as const satisfies ReadonlyArray<{
+    value: AccessoriesVibe;
+    label: string;
+    hint: string;
+  }>,
+};
+
+export const resultsCopy = {
+  heading: "almost there.",
+  subhead:
+    "the recommendation engine is still coming together. here's what we've got on you so far.",
+  emptyHeading: "you haven't started yet.",
+  emptyBody:
+    "head back to the start and tell us about the occasion, your vibe, and your budget. takes 5 minutes.",
+  emptyCta: 'start the flow',
+  restartCta: 'start over',
+};
+
 export const navCopy = {
   back: 'back',
   continue: 'continue',
+  finish: 'see what we know',
 };

@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
+  AccessoriesVibe,
+  BlousePreference,
   ColorAnalysis,
+  DrapeStyle,
   Duration,
   Mood,
   Occasion,
@@ -29,6 +32,9 @@ interface SessionActions {
   toggleColorVeto: (color: VetoColor) => void;
   setColorAnalysis: (result: ColorAnalysis) => void;
   clearColorAnalysis: () => void;
+  setBlousePreference: (pref: BlousePreference) => void;
+  setDrapeStyle: (style: DrapeStyle) => void;
+  setAccessoriesVibe: (vibe: AccessoriesVibe) => void;
   reset: () => void;
 }
 
@@ -47,6 +53,9 @@ const EMPTY: SessionState = {
   undertone: undefined,
   contrast: undefined,
   suggestedPalette: undefined,
+  blousePreference: undefined,
+  drapeStyle: undefined,
+  accessoriesVibe: undefined,
 };
 
 function isWedding(o: Occasion | undefined): boolean {
@@ -100,6 +109,9 @@ export const useSession = create<SessionState & SessionActions>()(
           contrast: undefined,
           suggestedPalette: undefined,
         }),
+      setBlousePreference: (blousePreference) => set({ blousePreference }),
+      setDrapeStyle: (drapeStyle) => set({ drapeStyle }),
+      setAccessoriesVibe: (accessoriesVibe) => set({ accessoriesVibe }),
       reset: () => set({ ...EMPTY }),
     }),
     {
@@ -120,6 +132,9 @@ export const useSession = create<SessionState & SessionActions>()(
         undertone: s.undertone,
         contrast: s.contrast,
         suggestedPalette: s.suggestedPalette,
+        blousePreference: s.blousePreference,
+        drapeStyle: s.drapeStyle,
+        accessoriesVibe: s.accessoriesVibe,
       }),
     },
   ),
