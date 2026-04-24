@@ -137,15 +137,14 @@ Capture event type, role, reuse intent, and budget. These are the hardest filter
 **Inputs**
 
 - **What's this for?** (single-select, visual tiles)
-  - Wedding — someone else's
-  - Wedding — my own
+  - Wedding
   - Festival / pooja
   - Work or professional
   - Casual / everyday
   - Party / cocktail / reception
   - Not sure yet — just browsing
 
-- **What's your role?** (shown only if wedding selected)
+- **What's your role?** (shown only if wedding selected — captures whether it's your own wedding or someone else's)
   - Bride
   - Bridesmaid / close friend
   - Family of bride or groom

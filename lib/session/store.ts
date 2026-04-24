@@ -23,7 +23,7 @@ const EMPTY: SessionState = {
 };
 
 function isWedding(o: Occasion | undefined): boolean {
-  return o === 'wedding-others' || o === 'wedding-mine';
+  return o === 'wedding';
 }
 
 export const useSession = create<SessionState & SessionActions>()(

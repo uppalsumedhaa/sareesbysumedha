@@ -1,6 +1,5 @@
 export type Occasion =
-  | 'wedding-others'
-  | 'wedding-mine'
+  | 'wedding'
   | 'festival'
   | 'work'
   | 'casual'

@@ -15,8 +15,7 @@ export const occasionCopy = {
   heading: "what's this for?",
   subhead: "pick the closest — we'll refine it in a sec.",
   options: [
-    { value: 'wedding-others', label: "wedding — someone else's" },
-    { value: 'wedding-mine', label: 'wedding — my own' },
+    { value: 'wedding', label: 'wedding' },
     { value: 'festival', label: 'festival / pooja' },
     { value: 'work', label: 'work or professional' },
     { value: 'casual', label: 'casual / everyday' },

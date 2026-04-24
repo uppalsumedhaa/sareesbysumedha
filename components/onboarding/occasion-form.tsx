@@ -16,7 +16,7 @@ import type { Occasion } from '@/lib/session/types';
 const DEFAULT_BUDGET = 8000;
 
 function isWedding(o: Occasion | undefined): boolean {
-  return o === 'wedding-others' || o === 'wedding-mine';
+  return o === 'wedding';
 }
 
 interface OccasionFormProps {
