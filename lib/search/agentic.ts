@@ -221,3 +221,80 @@ export async function findLiveSarees(
 
   return parsed.picks as LiveSaree[];
 }
+
+// -----------------------------------------------------------------------------
+// findReferenceSaree — used as the empty-state image source. When the main
+// agentic search returns zero picks (timeout, model error, etc.), we still
+// want to show the user an aesthetic "this is what to look for" card. This
+// function makes one fast Sonnet call, allowed at most one web_search and
+// one web_fetch, with a 25s ceiling. If it can't return a clean image URL
+// in that time it returns null and the UI renders text-only.
+// -----------------------------------------------------------------------------
+
+const REFERENCE_SYSTEM_PROMPT = `Find ONE representative product image of a saree matching the description. Use AT MOST one web_search call and AT MOST one web_fetch call. Don't verify in-stock. Don't pick the best one — pick the FIRST visually-relevant one and return.
+
+Return JSON only, no prose:
+{"imageUrl": "<full https URL of the image>"}
+
+If no good image is found, return {"imageUrl": null}. Speed matters more than perfection.`;
+
+export interface ReferenceSaree {
+  imageUrl: string;
+}
+
+export async function findReferenceSaree(
+  fabric: string,
+  colorWord: string,
+): Promise<ReferenceSaree | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+
+  const client = new Anthropic();
+  const REF_TIMEOUT_MS = 25_000;
+
+  let finalText = '';
+  try {
+    const stream = client.messages.stream(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        system: [
+          {
+            type: 'text',
+            text: REFERENCE_SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        tools: [
+          { type: 'web_search_20260209', name: 'web_search' },
+          { type: 'web_fetch_20260209', name: 'web_fetch' },
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `Find one image of a ${colorWord} ${fabric} saree.`,
+          },
+        ],
+      },
+      { signal: AbortSignal.timeout(REF_TIMEOUT_MS) },
+    );
+    const message = await stream.finalMessage();
+    for (const block of message.content) {
+      if (block.type === 'text') finalText += block.text + '\n';
+    }
+  } catch {
+    return null;
+  }
+
+  // Greedy match an outer JSON object that includes "imageUrl"
+  const m = finalText.match(/\{[\s\S]*?"imageUrl"[\s\S]*?\}/);
+  if (!m) return null;
+  let parsed: { imageUrl?: unknown };
+  try {
+    parsed = JSON.parse(m[0]);
+  } catch {
+    return null;
+  }
+  if (typeof parsed.imageUrl !== 'string') return null;
+  if (!parsed.imageUrl.startsWith('https://')) return null;
+  return { imageUrl: parsed.imageUrl };
+}

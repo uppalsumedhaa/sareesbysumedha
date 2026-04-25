@@ -5,7 +5,15 @@ import {
   type Rubric,
 } from '@/lib/recommendation/generateRubric';
 import { getClimate, type ClimateProfile } from '@/lib/weather/climate';
-import { findLiveSarees, type LiveSaree } from '@/lib/search/agentic';
+import {
+  findLiveSarees,
+  findReferenceSaree,
+  type LiveSaree,
+} from '@/lib/search/agentic';
+import {
+  describeIdealSaree,
+  type IdealSareeBrief,
+} from '@/lib/recommendation/describeIdealSaree';
 import { CATALOG } from '@/lib/catalog/data';
 import { climateToSeason, pickFromCatalog } from '@/lib/catalog/score';
 import type { IntakeAnswers } from '@/lib/copy/intake';
@@ -17,6 +25,10 @@ export interface RunIntakeResult {
   picksSource: 'live' | 'catalog' | 'none';
   // Non-fatal: rubric + climate still succeed even if live search errors.
   searchError?: string;
+  // Empty-state hero: rendered when picks is empty. Brief is always set in
+  // that case; referenceImage is best-effort and may be undefined.
+  idealBrief?: IdealSareeBrief;
+  referenceImageUrl?: string;
 }
 
 function isComplete(a: IntakeAnswers): a is Required<IntakeAnswers> {
@@ -99,5 +111,32 @@ export async function runIntake(answers: IntakeAnswers): Promise<RunIntakeResult
     }
   }
 
-  return { rubric, climate, picks, picksSource, searchError };
+  // When picks are empty (any reason), build the "what to look for" brief
+  // and try to fetch a representative image. Brief is deterministic and
+  // can't fail; the image is best-effort.
+  let idealBrief: IdealSareeBrief | undefined;
+  let referenceImageUrl: string | undefined;
+  if (picks.length === 0) {
+    idealBrief = describeIdealSaree(rubric, answers, climate);
+    const ref = await findReferenceSaree(
+      rubric.fabrics.candidates[0] ?? 'cotton-silk',
+      idealBrief.fabricLabel.split(' ')[0] ?? 'jewel',
+    );
+    if (ref) referenceImageUrl = ref.imageUrl;
+    console.log('[runIntake] empty-state', JSON.stringify({
+      hasBrief: !!idealBrief,
+      hasReferenceImage: !!referenceImageUrl,
+      ms: Date.now() - t0,
+    }));
+  }
+
+  return {
+    rubric,
+    climate,
+    picks,
+    picksSource,
+    searchError,
+    idealBrief,
+    referenceImageUrl,
+  };
 }
