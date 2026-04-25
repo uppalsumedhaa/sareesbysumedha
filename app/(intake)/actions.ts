@@ -37,6 +37,7 @@ export async function runIntake(answers: IntakeAnswers): Promise<RunIntakeResult
   if (!isComplete(answers)) {
     throw new Error('intake is incomplete');
   }
+  const t0 = Date.now();
   const climate = await getClimate(answers.city, answers.month);
   const rubric = buildRubricFromIntake(answers, climate);
 
@@ -44,13 +45,38 @@ export async function runIntake(answers: IntakeAnswers): Promise<RunIntakeResult
   let picksSource: 'live' | 'catalog' | 'none' = 'none';
   let searchError: string | undefined;
 
+  // Structured logging for prod debugging. These show up in Vercel logs as
+  // entries on the function trace, so we can see WHY a 200 came back with
+  // empty picks (timeout vs zero-match vs parse error).
+  console.log('[runIntake] start', JSON.stringify({
+    useCase: answers.useCase,
+    city: climate.city,
+    month: answers.month,
+    budgetInr: answers.budgetInr,
+    season: climateToSeason(climate),
+    bucket: rubric.complexion_bucket,
+    fabricCandidates: rubric.fabrics.candidates,
+    budgetFloor: rubric.budget_floor_inr,
+  }));
+
   try {
     picks = await findLiveSarees(answers, rubric, climate);
     if (picks.length > 0) {
       picksSource = 'live';
     }
+    console.log('[runIntake] live ok', JSON.stringify({
+      picks: picks.length,
+      retailers: picks.map((p) => p.retailer),
+      fabrics: picks.map((p) => p.fabricLabel),
+      ms: Date.now() - t0,
+    }));
   } catch (err) {
     searchError = err instanceof Error ? err.message : 'live search failed';
+    console.error('[runIntake] live error', JSON.stringify({
+      error: searchError,
+      errorName: err instanceof Error ? err.name : 'unknown',
+      ms: Date.now() - t0,
+    }));
   }
 
   // Catalog is now a last-ditch fallback for when the API path can't run at
