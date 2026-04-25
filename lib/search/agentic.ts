@@ -147,10 +147,13 @@ export async function findLiveSarees(
 
   const client = new Anthropic();
 
-  // Hard ceiling on the tool-loop runtime. Vercel kills the function at
-  // 300s; if Sonnet's web_search/web_fetch loop runs that long, the user just
-  // sees a hang. Better to abort at 90s and fall through to the catalog.
-  const SEARCH_TIMEOUT_MS = 90_000;
+  // 60s is enough for Sonnet's web_search loop to converge with the tightened
+  // prompt (max 4 searches, max 2 fetches, "first 3 valid wins" rule). If it
+  // can't, the user gets the empty-state hero card with the shopping guide,
+  // which is a designed surface, not a failure. Better to abort earlier so
+  // the function has budget to render that surface within Vercel's 120s
+  // route ceiling.
+  const SEARCH_TIMEOUT_MS = 60_000;
 
   let finalText = '';
   try {

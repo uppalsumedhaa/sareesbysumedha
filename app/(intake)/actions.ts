@@ -113,20 +113,35 @@ export async function runIntake(answers: IntakeAnswers): Promise<RunIntakeResult
 
   // When picks are empty (any reason), build the "what to look for" brief
   // and try to fetch a representative image. Brief is deterministic and
-  // can't fail; the image is best-effort.
+  // can't fail; the image is best-effort and only attempted when we have
+  // enough remaining budget to finish before Vercel's route ceiling.
   let idealBrief: IdealSareeBrief | undefined;
   let referenceImageUrl: string | undefined;
   if (picks.length === 0) {
     idealBrief = describeIdealSaree(rubric, answers, climate);
-    const ref = await findReferenceSaree(
-      rubric.fabrics.candidates[0] ?? 'cotton-silk',
-      idealBrief.fabricLabel.split(' ')[0] ?? 'jewel',
-    );
-    if (ref) referenceImageUrl = ref.imageUrl;
+
+    // Route ceiling is 120s (set in /dev/results/page.tsx). The reference
+    // call needs ~25s and ~5s of safety for response serialisation. If the
+    // remaining budget is tighter than that, skip the image — the card
+    // still renders with a placeholder glyph.
+    const ROUTE_CEILING_MS = 120_000;
+    const REF_BUDGET_MS = 30_000;
+    const remaining = ROUTE_CEILING_MS - (Date.now() - t0);
+
+    if (remaining >= REF_BUDGET_MS) {
+      const ref = await findReferenceSaree(
+        rubric.fabrics.candidates[0] ?? 'cotton-silk',
+        idealBrief.fabricLabel.split(' ')[0] ?? 'jewel',
+      );
+      if (ref) referenceImageUrl = ref.imageUrl;
+    }
+
     console.log('[runIntake] empty-state', JSON.stringify({
       hasBrief: !!idealBrief,
       hasReferenceImage: !!referenceImageUrl,
-      ms: Date.now() - t0,
+      remainingMs: remaining,
+      skippedReference: remaining < REF_BUDGET_MS,
+      totalMs: Date.now() - t0,
     }));
   }
 
