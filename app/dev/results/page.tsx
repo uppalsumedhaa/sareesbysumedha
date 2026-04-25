@@ -140,14 +140,8 @@ export default function ResultsPage() {
           )}
           {data?.searchError && data.picksSource === 'catalog' && (
             <p className="mt-4 rounded-lg border border-muted/30 bg-muted/5 p-4 text-sm text-ink/80">
-              live search couldn&apos;t complete (<span className="font-mono text-xs">{data.searchError}</span>),
-              so these are scored from our verified backup pool. real products, real links, just a smaller catalog.
-            </p>
-          )}
-          {data?.searchError && data.picksSource === 'none' && (
-            <p className="mt-4 rounded-lg border border-bindi/30 bg-bindi/5 p-4 text-sm text-ink/80">
-              live search hit a snag: <span className="font-mono">{data.searchError}</span>.
-              the rubric still worked, see what it decided below.
+              live search isn&apos;t configured here (<span className="font-mono text-xs">{data.searchError}</span>),
+              so these are from the seed catalog. real products, real links, just a smaller pool. dev-only state.
             </p>
           )}
         </header>
@@ -162,16 +156,29 @@ export default function ResultsPage() {
 
         {data && data.picks.length === 0 && (
           <section className="rounded-lg border border-muted/20 bg-white p-6">
-            <p className="text-ink">
+            <div className="space-y-4 text-ink">
               {data.searchError ? (
                 <>
-                  the live search took too long, and our backup catalog doesn&apos;t go high enough for this combination yet. try a budget around ₹3,000-5,000, or pick a different use case. you can also{' '}
-                  <Link href="/use-case" className="underline">refresh</Link> and we&apos;ll try the live search again.
+                  <p>
+                    the search hit a wall this time. it happens. one click and we&apos;ll try again.
+                  </p>
+                  <p className="text-sm text-muted">
+                    technical detail: <span className="font-mono text-xs">{data.searchError}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="inline-flex items-center rounded-full bg-bindi px-5 py-2 text-sm font-medium text-cream transition hover:bg-bindi-deep"
+                  >
+                    try again
+                  </button>
                 </>
               ) : (
-                <>the scout came back empty. that&apos;s on us. try widening the budget or picking a different month.</>
+                <p>
+                  the scout came back empty. that&apos;s on us. try widening the budget or picking a different month.
+                </p>
               )}
-            </p>
+            </div>
           </section>
         )}
 

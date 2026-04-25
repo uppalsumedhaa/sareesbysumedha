@@ -53,8 +53,15 @@ export async function runIntake(answers: IntakeAnswers): Promise<RunIntakeResult
     searchError = err instanceof Error ? err.message : 'live search failed';
   }
 
-  // Fall back to scoring the seed catalog when live search produced nothing.
-  if (picks.length === 0) {
+  // Catalog is now a last-ditch fallback for when the API path can't run at
+  // all (no key configured — i.e. local dev without ANTHROPIC_API_KEY). All
+  // other live failures (timeout, rate limit, model error) surface honestly
+  // to the user with a retry path. The seed catalog is too thin to be a
+  // graceful steady-state fallback, and leaning on it papers over real bugs
+  // in the live path.
+  const liveCannotRun =
+    !!searchError && searchError.startsWith('ANTHROPIC_API_KEY is not set');
+  if (picks.length === 0 && liveCannotRun) {
     const fallback = pickFromCatalog(CATALOG, rubric, {
       budgetInr: answers.budgetInr,
       useCase: answers.useCase,

@@ -51,14 +51,15 @@ APPROVED RETAILERS (only these — reject any product not on this list):
 - ajio.com
 
 WORK STEPS:
-1. Use web_search to find candidate products matching the rubric's fabric candidates, flatter color families, and budget target band.
-2. Use web_fetch ONLY when the search snippet doesn't already show the price and in-stock signal. Most retailer search snippets contain both — fetch is expensive and slow, so don't fetch for verification when the snippet has what you need. Aim for at most 3 web_fetch calls in the whole task.
-3. DIVERSITY (hard rule, not a preference):
+1. Use web_search to find candidate products matching the rubric's fabric candidates, flatter color families, and budget target band. Use AT MOST 4 web_search calls.
+2. Use web_fetch ONLY when the search snippet doesn't already show the price and in-stock signal. Most retailer search snippets contain both — fetch is expensive and slow, so don't fetch for verification when the snippet has what you need. Use AT MOST 2 web_fetch calls in the whole task.
+3. CONVERGENCE: The first three picks that satisfy the diversity rule, the budget band, and the embellishment rule are good enough. Do not keep searching for marginally better matches once you have three valid picks. Speed matters more than picking the absolute best.
+4. DIVERSITY (hard rule, not a preference):
    - The three picks must come from at least two different retailers. Three picks from one retailer is wrong, even if quality is high.
    - The three picks must use at least two different fabrics. Three banarasis is wrong, three mul cottons is wrong.
    - If the only way to satisfy diversity is to drop a slightly stronger pick for a slightly weaker one, do that — variety is part of the value.
-4. Prefer products that match both a flatter color family AND a candidate fabric.
-5. Never include avoid-list color families unless nothing else is available.
+5. Prefer products that match both a flatter color family AND a candidate fabric.
+6. Never include avoid-list color families unless nothing else is available.
 
 BUDGET RULES (hard, not soft):
 - The user's budget is a TARGET BAND, not a cap. They have specified both a floor and a max.
