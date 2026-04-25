@@ -60,7 +60,20 @@ export interface Rubric {
   saturation: Saturation;
   day_night_note: string;
   budget_notes: string;
+  budget_floor_inr: number;
+  budget_max_inr: number;
   search_queries: string[];
+}
+
+// Budget is a target band, not a cap. Picking ₹15k means the user is shopping
+// at ₹15k tier; surfacing a ₹2,500 mul cotton is a downgrade, not a deal.
+// Floor scales in bands so it's interpretable in the rubric debug panel.
+export function budgetFloor(cap: number): number {
+  if (cap <= 2500) return 0;
+  if (cap <= 5000) return 1500;
+  if (cap <= 10000) return 3500;
+  if (cap <= 25000) return 7000;
+  return 15000;
 }
 
 // -- Color palette map (from lib/color/color-theory.md) --
@@ -153,6 +166,9 @@ const FABRICS: FabricRule[] = [
   { name: 'maheshwari', lightness: 'light', drape: 'close', difficulty: 'easy', appropriate_for: ['everyday_office', 'everyday_home', 'special_occasion'], season_ok: ['summer', 'winter'], typical_budget_inr: [3000, 10000] },
   { name: 'kota doria', lightness: 'light', drape: 'close', difficulty: 'medium', appropriate_for: ['everyday_office', 'everyday_home', 'special_occasion'], season_ok: ['summer'], typical_budget_inr: [3000, 10000] },
 
+  // Linen (premium everyday)
+  { name: 'linen', lightness: 'light', drape: 'close', difficulty: 'easy', appropriate_for: ['everyday_office', 'everyday_home', 'special_occasion'], season_ok: ['summer', 'monsoon', 'winter'], typical_budget_inr: [3500, 15000] },
+
   // Synthetics / modern (daily, practical, budget-friendly)
   { name: 'georgette', lightness: 'light', drape: 'close', difficulty: 'medium', appropriate_for: ['everyday_office', 'everyday_home', 'special_occasion'], season_ok: ['summer', 'monsoon', 'winter'], typical_budget_inr: [800, 4000] },
   { name: 'chiffon', lightness: 'light', drape: 'close', difficulty: 'medium', appropriate_for: ['everyday_office', 'everyday_home', 'special_occasion'], season_ok: ['summer', 'monsoon'], typical_budget_inr: [800, 5000] },
@@ -163,6 +179,7 @@ function fabricCandidates(profile: Profile): { candidates: FabricRule[]; exclude
   const reasons: string[] = [];
   const out: FabricRule[] = [];
   const excluded: FabricRule[] = [];
+  const floor = budgetFloor(profile.budget_inr_max);
 
   for (const f of FABRICS) {
     const failures: string[] = [];
@@ -175,6 +192,9 @@ function fabricCandidates(profile: Profile): { candidates: FabricRule[]; exclude
     if (profile.draping_skill === 'hassle_free' && f.difficulty === 'hard') failures.push('too hard to drape');
     if (profile.draping_skill === 'medium_pro' && f.difficulty === 'hard') failures.push('too hard for medium-pro draper');
     if (f.typical_budget_inr[0] > profile.budget_inr_max) failures.push(`entry price ₹${f.typical_budget_inr[0]} exceeds budget`);
+    // The fabric's ceiling sits below the user's budget floor — this is a
+    // tier below where they're shopping. Skip it.
+    if (floor > 0 && f.typical_budget_inr[1] < floor) failures.push(`fabric ceiling ₹${f.typical_budget_inr[1]} is below budget floor ₹${floor}`);
     if (profile.fabric_aversions.includes(f.name)) failures.push('on aversion list');
 
     if (failures.length === 0) {
@@ -209,6 +229,7 @@ function saturationPref(profile: Profile): { saturation: Saturation; note: strin
 
 function budgetNote(profile: Profile, candidateFabrics: FabricRule[]): string {
   const cap = profile.budget_inr_max;
+  const floor = budgetFloor(cap);
   const dropped: string[] = [];
   if (cap < 8000) dropped.push('pure Kanjeevaram silk');
   if (cap < 5000) dropped.push('pure Banarasi silk');
@@ -219,7 +240,11 @@ function budgetNote(profile: Profile, candidateFabrics: FabricRule[]): string {
   if (cap < 8000) subs.push('tested-zari Kanjeevaram in place of pure silk');
   if (cap < 3000) subs.push('semi-Ikkat in place of original Ikkat, semi-Chanderi in place of pure');
 
-  const parts: string[] = [`Budget cap ₹${cap}.`];
+  const parts: string[] = [
+    floor > 0
+      ? `Budget target ₹${floor.toLocaleString('en-IN')} to ₹${cap.toLocaleString('en-IN')}. Aim for the upper half. Anything below the floor is a tier downgrade, skip it.`
+      : `Budget cap ₹${cap.toLocaleString('en-IN')}.`,
+  ];
   if (dropped.length) parts.push(`Out of range: ${dropped.join(', ')}.`);
   if (subs.length) parts.push(`Substitutions: ${subs.join('; ')}.`);
   parts.push(`${candidateFabrics.length} fabric families in range.`);
@@ -303,6 +328,8 @@ export function generateRubric(profile: Profile): Rubric {
     saturation,
     day_night_note: dayNightNote,
     budget_notes,
+    budget_floor_inr: budgetFloor(profile.budget_inr_max),
+    budget_max_inr: profile.budget_inr_max,
     search_queries,
   };
 }

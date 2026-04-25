@@ -2,10 +2,15 @@
 
 // Results page — reads intake from the client store, calls the server action
 // which fetches climate, runs the rubric, then delegates live saree search to
-// Claude Opus 4.7 with server-side web_search + web_fetch. Renders three real
+// Claude Sonnet 4.6 with server-side web_search + web_fetch. Renders three real
 // in-stock picks from approved retailers.
 //
 // The debug panel stays around so Sumi can verify climate + rubric output.
+//
+// `maxDuration` below is a Next.js route segment config. It's read at build
+// time even though the default export is a client component; the value sets
+// the Vercel function ceiling for the server action this page calls.
+export const maxDuration = 120;
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -15,6 +20,7 @@ import { useIntake } from '@/lib/intake/store';
 import { runIntake, type RunIntakeResult } from '@/app/(intake)/actions';
 import type { LiveSaree } from '@/lib/search/agentic';
 import type { IntakeAnswers } from '@/lib/copy/intake';
+import { SealLoader } from '@/components/ui/seal-loader';
 
 const USE_CASE_LABEL: Record<string, string> = {
   everyday_office: 'everyday office wear',
@@ -83,7 +89,7 @@ export default function ResultsPage() {
   const subhead = useMemo(() => {
     if (!complete || !answers.city || !answers.month || !answers.useCase) return '';
     const useCaseText = USE_CASE_LABEL[answers.useCase] ?? 'your saree';
-    return `three picks for ${useCaseText} in ${answers.city}, ${MONTH_NAME[answers.month]}.`;
+    return `for ${useCaseText} in ${answers.city}, ${MONTH_NAME[answers.month]}. weather, complexion and budget all in the mix.`;
   }, [complete, answers.useCase, answers.city, answers.month]);
 
   if (!complete) {
@@ -120,9 +126,9 @@ export default function ResultsPage() {
             <p className="mt-2 text-sm text-muted md:text-base">{subhead}</p>
           )}
           {loading && (
-            <p className="mt-4 text-sm text-muted">
-              scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this takes 15-30 seconds.
-            </p>
+            <div className="mt-6">
+              <SealLoader caption="scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this can take up to a minute." />
+            </div>
           )}
           {fatal && (
             <p className="mt-4 text-sm text-bindi">
@@ -134,14 +140,8 @@ export default function ResultsPage() {
           )}
           {data?.searchError && data.picksSource === 'catalog' && (
             <p className="mt-4 rounded-lg border border-muted/30 bg-muted/5 p-4 text-sm text-ink/80">
-              live search couldn&apos;t complete (<span className="font-mono text-xs">{data.searchError}</span>),
-              so these are scored from our verified backup pool. real products, real links, just a smaller catalog.
-            </p>
-          )}
-          {data?.searchError && data.picksSource === 'none' && (
-            <p className="mt-4 rounded-lg border border-bindi/30 bg-bindi/5 p-4 text-sm text-ink/80">
-              live search hit a snag: <span className="font-mono">{data.searchError}</span>.
-              the rubric still worked, see what it decided below.
+              live search isn&apos;t configured here (<span className="font-mono text-xs">{data.searchError}</span>),
+              so these are from the seed catalog. real products, real links, just a smaller pool. dev-only state.
             </p>
           )}
         </header>
@@ -154,17 +154,105 @@ export default function ResultsPage() {
           </section>
         )}
 
-        {data && data.picks.length === 0 && !data.searchError && (
-          <section className="rounded-lg border border-muted/20 bg-white p-6">
-            <p className="text-ink">
-              the scout came back empty. that&apos;s on us. try widening the budget or picking a different month.
-            </p>
-          </section>
+        {data && data.picks.length === 0 && data.idealBrief && (
+          <IdealSareeCard
+            brief={data.idealBrief}
+            imageUrl={data.referenceImageUrl}
+            searchError={data.searchError}
+          />
         )}
 
         {data && <RubricPanel result={data} />}
       </div>
     </main>
+  );
+}
+
+function IdealSareeCard({
+  brief,
+  imageUrl,
+  searchError,
+}: {
+  brief: NonNullable<RunIntakeResult['idealBrief']>;
+  imageUrl?: string;
+  searchError?: string;
+}) {
+  return (
+    <article className="overflow-hidden rounded-xl border border-bindi/15 bg-white">
+      <div className="grid gap-0 md:grid-cols-[minmax(0,2fr),minmax(0,3fr)]">
+        <div className="aspect-[4/5] bg-muted/10 md:aspect-auto md:min-h-[400px]">
+          {imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt={brief.fabricLabel}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-cream text-bindi/30">
+              <svg
+                viewBox="0 0 60 60"
+                aria-hidden="true"
+                className="h-16 w-16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="6" y="6" width="48" height="48" rx="2" />
+                <path d="M 30 38 C 25 32 25 22 30 14 C 35 22 35 32 30 38 Z" />
+                <path d="M 30 38 L 30 48" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-7 p-6 md:gap-8 md:p-10">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted">
+              the saree to look for
+            </p>
+            <h2 className="mt-2 font-serif text-2xl text-ink md:text-3xl">
+              {brief.fabricLabel}
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-ink/80">
+              {brief.description}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted">
+              how to wear it
+            </p>
+            <ul className="mt-3 space-y-2.5 text-base leading-relaxed text-ink/85">
+              {brief.styling.map((tip, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="mt-2.5 h-1 w-1 flex-shrink-0 rounded-full bg-bindi" />
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-auto space-y-3 border-t border-muted/15 pt-5">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center rounded-full bg-bindi px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-bindi-deep"
+            >
+              try the search again
+            </button>
+            <p className="text-xs leading-relaxed text-muted">
+              {searchError
+                ? "we couldn't lock down a specific in-stock match this minute. use this as your shopping guide so you know it when you see it."
+                : 'the scout came back empty for this combination. use this as your shopping guide, or widen the budget and try again.'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 

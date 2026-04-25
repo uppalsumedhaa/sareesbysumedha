@@ -3,18 +3,20 @@
 // rate limit, $0 credit, model returns empty).
 //
 // Scoring shape:
-//   - hard filter: budget cap, use case match
+//   - hard filter: budget target band (floor + cap), use case match,
+//     embellishment for everyday wear
 //   - soft scoring: color flatter (+3), color avoid (-5), fabric candidate (+2),
-//     fabric excluded (-3), saturation match (+1), season ok (+1), budget-fit
-//     bonus when price <= 80% of budget (+0.5)
-//   - diversity pass: prefer the highest-scoring saree from each distinct fabric
-//     before back-filling from the remaining tail
+//     fabric excluded (-3), saturation match (+1), season ok (+1),
+//     upper-half-of-band bonus (+1)
+//   - diversity pass: enforce distinct fabric AND distinct retailer across the
+//     top picks before back-filling from the remaining tail
 
-import type {
-  ColorFamily,
-  Rubric,
-  Season,
-  UseCase,
+import {
+  budgetFloor,
+  type ColorFamily,
+  type Rubric,
+  type Season,
+  type UseCase,
 } from '@/lib/recommendation/generateRubric';
 import type { ClimateProfile } from '@/lib/weather/climate';
 import type { LiveSaree } from '@/lib/search/agentic';
@@ -43,9 +45,16 @@ function scoreOne(
   ctx: ScoringContext,
 ): { score: number; matchedOn: string[] } {
   const matches: string[] = [];
+  const floor = budgetFloor(ctx.budgetInr);
 
   if (saree.priceInr > ctx.budgetInr) {
     return { score: HARD_FAIL, matchedOn: ['over-budget'] };
+  }
+  // Budget is a target band, not a cap. Anything below the floor is a tier
+  // below where the user is shopping — surfacing it reads as "we ignored your
+  // budget." Hard-fail rather than penalize.
+  if (saree.priceInr < floor) {
+    return { score: HARD_FAIL, matchedOn: [`under-budget-floor-${floor}`] };
   }
   if (!saree.useCases.includes(ctx.useCase)) {
     return { score: HARD_FAIL, matchedOn: ['use-case-mismatch'] };
@@ -88,28 +97,57 @@ function scoreOne(
     matches.push('season-ok');
   }
 
-  if (saree.priceInr <= ctx.budgetInr * 0.8) {
-    score += 0.5;
-    matches.push('budget-fit');
+  // Reward sarees in the upper half of the target band — the user is shopping
+  // at this tier, not below it.
+  const bandMid = (floor + ctx.budgetInr) / 2;
+  if (saree.priceInr >= bandMid) {
+    score += 1;
+    matches.push('upper-half-of-band');
   }
 
   return { score, matchedOn: matches };
 }
 
+// Picks the top n sarees while enforcing variety. Three banarasis is wrong;
+// three picks all from Suta is wrong. Selection runs in tiers, each strictly
+// looser than the previous, so the highest-scoring saree that still satisfies
+// the strictest tier wins.
+//   pass 1: candidate's fabric AND retailer are both new
+//   pass 2: at least one of (fabric, retailer) is new
+//   pass 3: the (fabric, retailer) pair is new (rejects exact duplicates only)
+//   pass 4: unconstrained back-fill — only reached when the candidate pool is
+//           too thin to satisfy any of the above. Returning fewer than n is
+//           worse UX than returning a duplicate pair, so we accept it here.
 function pickDiverseTop(scored: ScoredSaree[], n: number): ScoredSaree[] {
   const picked: ScoredSaree[] = [];
   const seenFabric = new Set<string>();
+  const seenRetailer = new Set<string>();
+  const seenPair = new Set<string>();
+
+  const take = (s: ScoredSaree) => {
+    picked.push(s);
+    seenFabric.add(s.saree.fabric);
+    seenRetailer.add(s.saree.retailer);
+    seenPair.add(`${s.saree.fabric}|${s.saree.retailer}`);
+  };
 
   for (const s of scored) {
     if (picked.length >= n) break;
-    if (!seenFabric.has(s.saree.fabric)) {
-      picked.push(s);
-      seenFabric.add(s.saree.fabric);
-    }
+    if (!seenFabric.has(s.saree.fabric) && !seenRetailer.has(s.saree.retailer)) take(s);
   }
   for (const s of scored) {
     if (picked.length >= n) break;
-    if (!picked.includes(s)) picked.push(s);
+    if (picked.includes(s)) continue;
+    if (!seenFabric.has(s.saree.fabric) || !seenRetailer.has(s.saree.retailer)) take(s);
+  }
+  for (const s of scored) {
+    if (picked.length >= n) break;
+    if (picked.includes(s)) continue;
+    if (!seenPair.has(`${s.saree.fabric}|${s.saree.retailer}`)) take(s);
+  }
+  for (const s of scored) {
+    if (picked.length >= n) break;
+    if (!picked.includes(s)) take(s);
   }
   return picked;
 }

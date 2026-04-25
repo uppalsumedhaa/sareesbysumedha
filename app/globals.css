@@ -60,6 +60,31 @@ body {
   }
 }
 
+/* Seal loader: continuous-line draw across the brand-mark SVG paths. Each
+   path uses pathLength="1" so a single keyframe works regardless of length;
+   stagger lives on animation-delay per element. */
+@keyframes zarf-seal-draw {
+  0%   { stroke-dashoffset: 1; opacity: 0.25; }
+  18%  { opacity: 1; }
+  55%  { stroke-dashoffset: 0; opacity: 1; }
+  82%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 1; opacity: 0.25; }
+}
+
+.zarf-seal-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: zarf-seal-draw 5.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zarf-seal-path {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
 /* ---------- Zarf range slider ---------- */
 .zarf-range {
   -webkit-appearance: none;
