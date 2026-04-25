@@ -83,7 +83,7 @@ export default function ResultsPage() {
   const subhead = useMemo(() => {
     if (!complete || !answers.city || !answers.month || !answers.useCase) return '';
     const useCaseText = USE_CASE_LABEL[answers.useCase] ?? 'your saree';
-    return `three picks for ${useCaseText} in ${answers.city}, ${MONTH_NAME[answers.month]}.`;
+    return `for ${useCaseText} in ${answers.city}, ${MONTH_NAME[answers.month]}. weather, complexion and budget all in the mix.`;
   }, [complete, answers.useCase, answers.city, answers.month]);
 
   if (!complete) {
