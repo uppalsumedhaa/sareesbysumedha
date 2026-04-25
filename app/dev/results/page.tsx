@@ -20,6 +20,7 @@ import { useIntake } from '@/lib/intake/store';
 import { runIntake, type RunIntakeResult } from '@/app/(intake)/actions';
 import type { LiveSaree } from '@/lib/search/agentic';
 import type { IntakeAnswers } from '@/lib/copy/intake';
+import { SealLoader } from '@/components/ui/seal-loader';
 
 const USE_CASE_LABEL: Record<string, string> = {
   everyday_office: 'everyday office wear',
@@ -125,9 +126,9 @@ export default function ResultsPage() {
             <p className="mt-2 text-sm text-muted md:text-base">{subhead}</p>
           )}
           {loading && (
-            <p className="mt-4 text-sm text-muted">
-              scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this can take up to a minute.
-            </p>
+            <div className="mt-6">
+              <SealLoader caption="scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this can take up to a minute." />
+            </div>
           )}
           {fatal && (
             <p className="mt-4 text-sm text-bindi">
