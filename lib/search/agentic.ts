@@ -146,32 +146,46 @@ export async function findLiveSarees(
 
   const client = new Anthropic();
 
+  // Hard ceiling on the tool-loop runtime. Vercel kills the function at
+  // 300s; if Sonnet's web_search/web_fetch loop runs that long, the user just
+  // sees a hang. Better to abort at 90s and fall through to the catalog.
+  const SEARCH_TIMEOUT_MS = 90_000;
+
   let finalText = '';
   try {
-    const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 16000,
-      thinking: { type: 'adaptive' },
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_PROMPT,
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      tools: [
-        { type: 'web_search_20260209', name: 'web_search' },
-        { type: 'web_fetch_20260209', name: 'web_fetch' },
-      ],
-      messages: [
-        { role: 'user', content: buildUserPrompt(answers, rubric, climate) },
-      ],
-    });
+    const stream = client.messages.stream(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 16000,
+        thinking: { type: 'adaptive' },
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        tools: [
+          { type: 'web_search_20260209', name: 'web_search' },
+          { type: 'web_fetch_20260209', name: 'web_fetch' },
+        ],
+        messages: [
+          { role: 'user', content: buildUserPrompt(answers, rubric, climate) },
+        ],
+      },
+      { signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS) },
+    );
     const message = await stream.finalMessage();
     for (const block of message.content) {
       if (block.type === 'text') finalText += block.text + '\n';
     }
   } catch (err) {
+    if (err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
+      throw new AgenticSearchError(
+        `live search exceeded ${SEARCH_TIMEOUT_MS / 1000}s and was aborted`,
+        err,
+      );
+    }
     throw new AgenticSearchError(
       err instanceof Error ? err.message : 'Claude API call failed',
       err,

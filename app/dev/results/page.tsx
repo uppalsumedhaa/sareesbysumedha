@@ -2,10 +2,15 @@
 
 // Results page — reads intake from the client store, calls the server action
 // which fetches climate, runs the rubric, then delegates live saree search to
-// Claude Opus 4.7 with server-side web_search + web_fetch. Renders three real
+// Claude Sonnet 4.6 with server-side web_search + web_fetch. Renders three real
 // in-stock picks from approved retailers.
 //
 // The debug panel stays around so Sumi can verify climate + rubric output.
+//
+// `maxDuration` below is a Next.js route segment config. It's read at build
+// time even though the default export is a client component; the value sets
+// the Vercel function ceiling for the server action this page calls.
+export const maxDuration = 120;
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -121,7 +126,7 @@ export default function ResultsPage() {
           )}
           {loading && (
             <p className="mt-4 text-sm text-muted">
-              scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this takes 15-30 seconds.
+              scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this can take up to a minute.
             </p>
           )}
           {fatal && (
