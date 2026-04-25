@@ -1,6 +1,6 @@
 # Zarf, current state
 
-Handoff notes as of 2026-04-25. Read this alongside `PRD.md`, `CLAUDE.md`, and the user-memory files under `~/.claude/projects/-Users-sumedhauppal-sareesbysumedha/memory/`.
+Handoff notes as of 2026-04-25 (last refresh after wiring live agentic search and seeding the fallback catalog). Read this alongside `PRD.md`, `CLAUDE.md`, and the user-memory files under `~/.claude/projects/-Users-sumedhauppal-sareesbysumedha/memory/`.
 
 ---
 
@@ -13,7 +13,7 @@ Seven inputs decide a saree recommendation. Every question in the flow must map 
 1. Use case: `everyday_office` | `everyday_home` | `special_occasion`
 2. City + month. Season is **not** asked. Climate (avg temp, humidity, monthly precipitation, bucket) is fetched from Open-Meteo at submit time using the city's geocoded lat/lon and the answered month. See `lib/weather/climate.ts`.
 3. Time of day: `day` | `night`
-4. Complexion depth: `fair` | `wheatish` | `deep`
+4. Complexion depth: `light` | `wheatish` | `deep`. Renamed from `fair` to `light` end-to-end (rubric, palette keys, color-theory doc) because "fair" carries colorist baggage in the Indian context.
 5. Undertone: asked via a jewelry-test-style question (yellow gold vs silver). Fallback to `neutral` when uncertain. Never surface to user as jargon.
 6. Draping skill: `hassle_free` | `medium_pro` | `pro`
 7. Budget (INR max). Drives substitution within fabric families (pure Kanjivaram becomes tested-zari, original Ikkat becomes semi-Ikkat).
@@ -86,18 +86,53 @@ Full brief saved at `lib/color/color-theory.md`. Nine complexion buckets (3 dept
 
 ## Code built
 
-- `lib/recommendation/generateRubric.ts`, deterministic rubric generator. Takes a profile, returns complexion bucket, color palette, fabric candidates, saturation, budget notes, and a set of search queries. No LLM call yet.
-- `app/api/dev/rubric/route.ts`, dev API endpoint that runs the rubric for a hard-coded JPMC-friend profile and returns JSON.
-- `app/dev/results/page.tsx`, the user-facing results page for the JPMC profile. Wired to three real, in-stock sarees (Soch magenta chiffon ombre, Suta Ode To Greens mulmul, Soch emerald chanderi) with product images and affiliate-ready URLs. Reasoning lines written in elder-sister voice.
-- `app/(intake)/...`, the new intake flow. One route per question; shared layout in `app/(intake)/layout.tsx`. Question 1 (use case) is live at `/use-case`. Remaining six questions to be built next.
-- `lib/weather/climate.ts`, server-side climate lookup. Geocodes a city via Open-Meteo (no API key), pulls the previous-year monthly archive, and returns `{avgTempC, avgHumidity, precipMm, rainy, bucket}` where bucket is one of `hot_humid` | `hot_dry` | `temperate` | `cool`. Dev endpoint at `app/api/dev/climate/route.ts` for spot checks.
-- Old stage pages and forms (the pre-lock 5-stage flow) were deleted. The new intake is the only flow.
+### Intake (live end-to-end)
+
+All seven questions are live under `app/(intake)/`. Welcome → `/use-case` → `/where` → `/time-of-day` → `/skin` → `/jewelry` → `/draping` → `/budget` → `/dev/results`. Final CTA reads **"what's my saree?"**
+
+Shared state: `lib/intake/store.ts` (zustand). Each page reads its prior answer from the store on mount and writes on continue. No persistence yet, refresh wipes state — add `persist` middleware when needed.
+
+Welcome screen: hero is `your saree / matchmaker[•]` rendered in two staggered reveals; bindi-disc top-right has been replaced with the Zarf line-art mark (`public/brand/zarf-mark-circle.jpg`) cropped to a circle. Top-left wordmark restored.
+
+### Climate
+
+`lib/weather/climate.ts` geocodes a city via Open-Meteo (no API key), pulls the previous-year monthly archive, and returns `{avgTempC, avgHumidity, precipMm, rainy, bucket}` where bucket is one of `hot_humid` | `hot_dry` | `temperate` | `cool`. Dev endpoint at `app/api/dev/climate/route.ts`.
+
+### Rubric
+
+`lib/recommendation/generateRubric.ts`, deterministic. Takes the legacy `Profile` shape, returns complexion bucket, color palette, fabric candidates, saturation, budget notes, and search queries. New helper `buildRubricFromIntake(answers, climate)` maps the 7-input intake + ClimateProfile into a Profile and runs the generator. Drape-volume / solids-vs-prints / fabric-aversions are passed as defaults (`'either'`, `[]`) since they were cut from intake.
+
+### Live agentic search (Path D)
+
+`lib/search/agentic.ts` calls **Claude Opus 4.7** via the Anthropic SDK with server-side `web_search_20260209` + `web_fetch_20260209` tools. Briefs the model with rubric + climate + intake, gets back three real in-stock products as JSON. System prompt is `cache_control: ephemeral`-tagged.
+
+Server action: `app/(intake)/actions.ts → runIntake(answers)` orchestrates climate fetch → rubric → live search and returns `{rubric, climate, picks, searchError?}`. Live search failure does not bubble — the page still gets the rubric.
+
+Requires `ANTHROPIC_API_KEY` in `.env.local`. Cost: ~$0.05–0.20 per intake. Path A/B/C alternatives are documented in chat history; Path D was the chosen direction.
+
+### Results page
+
+`app/dev/results/page.tsx`, client component. Reads intake from the store, calls the server action, renders:
+- Headline: **"the chosen three for you"** (static)
+- Subhead: dynamic, derived from intake (`three picks for everyday office wear in bangalore, june.`)
+- Three cards with real product images, prices, retailer attribution, Buy buttons
+- Collapsible debug panel: climate readings, complexion bucket, color direction, fabric candidates, saturation, budget notes — so Sumi can verify the rubric
+- Loading state: *"scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this takes 15-30 seconds."*
+- Empty/error states with a clear "start over" link
+
+### Fallback catalog (seeded, not yet wired)
+
+`lib/catalog/data.ts` has 25 hand-verified in-stock sarees from Suta, Karagiri, Soch, and Raw Mango, tagged with fabric / color family / saturation / use cases / seasons (schema in `lib/catalog/types.ts`). Intended use: when live search throws (missing API key, rate limit, empty result set), the server action scores the catalog against the rubric and returns the top 3. The scoring function and the wiring in `actions.ts` are still pending.
+
+### Old flow
+
+The pre-lock 5-stage flow was deleted in commit `3b7394a`. The intake under `app/(intake)/` is the only flow.
 
 ---
 
 ## Test cases discussed
 
-1. **JPMC friend** (case #1, complete): office everyday, Bangalore summer, fair skin, neutral undertone (fallback), close-drape, medium-pro draper, budget ₹3000 max. Ground truth from Sumi: bright magenta georgette. This is the profile driving the current POC.
+1. **JPMC friend** (case #1, complete): office everyday, Bangalore summer, light skin, neutral undertone (fallback), medium-pro draper, budget ₹3000 max. Ground truth from Sumi: bright magenta georgette. This is the profile driving the current POC.
 2. **Friend's mother** (case #2, partial): homewear, pro draper, Chanderi in earthy colors. Budget, complexion, and other inputs not filled in.
 3. **Haldi bridesmaid** (case #3, partial): dark skin, morning haldi function, medium-pro draper, chiffon in mehendi green. Revealed a tension between color theory (yellow flatters deep-warm skin) and social context (avoiding the haldi-yellow uniform at a ceremony), which we flagged but did not encode.
 
@@ -105,29 +140,24 @@ Full brief saved at `lib/color/color-theory.md`. Nine complexion buckets (3 dept
 
 ## Pending
 
-### Immediate: build the remaining six intake questions
+### Immediate
 
-Q1 (use case) is live. Still to build, in order:
+1. **Catalog scoring + fallback wiring.** `lib/catalog/data.ts` has 25 verified products. Need to add `lib/catalog/score.ts` with a deterministic scoring function (hard filter on budget + use case; soft scoring on color flatter/avoid, fabric match, saturation match, season match; diversity pass for retailer + fabric variety). Wire into `runIntake` so the server action returns catalog picks when live search throws. Without this, a user without `ANTHROPIC_API_KEY` set sees an error banner.
 
-2. `/where` — city (free text, geocoded) + month (1–12). Climate fetched at submit time from `lib/weather/climate.ts`.
-3. `/time-of-day` — day | night
-4. `/skin` — fair | wheatish | deep
-5. `/jewelry` — gold | silver | either (jewelry-test proxy for undertone)
-6. `/draping` — hassle-free | medium-pro | pro
-7. `/budget` — INR slider
+2. **Move the rubric debug panel behind a dev flag.** It's currently always visible at the bottom of `/dev/results`. For real users it should hide unless `?debug=1` or the user is on a localhost build. The panel exists for Sumi's verification, not the customer.
 
-Cadence: build one screen, push, get Sumi's feedback, then build the next.
+### Quality and trust
 
-Each question is its own route under `app/(intake)/`. After Q7, intake submits to a new route (TBD `/results`) that runs the rubric against the collected inputs and renders the three-card output currently living at `/dev/results`.
+- **Authenticity guardrails.** Encode the red-flag pricing rules from `docs/saree-reference.md` §10–11 (e.g., "Pure Banarasi under ₹3,500 = synthetic"). When live search returns a product whose claimed weave + price violates a floor, drop it before render.
+- **Drape on the result card.** `docs/saree-reference.md` §8 maps fabric to drape (Nivi, Atpoure, Seedha Pallu, Nauvari). Surface a one-line drape suggestion on each card. No new intake question needed.
+- **Care badge.** One line per card ("dry clean only" / "hand wash, line dry"). Pulled from §12 of the saree reference, mapped per fabric family.
+- **Special-occasion follow-up.** When `useCase === 'special_occasion'`, the rubric is still too coarse. Saree reference §7 distinguishes haldi, mehendi, sangeet, cocktail, ceremony, reception — each with its own color/fabric profile. Add a Q1.5 conditional follow-up to capture which.
 
-State management: for the slice, Q1 uses local state only. Once two or more questions are wired in sequence, add a minimal intake store (likely Zustand, single file under `lib/intake/`). Do not restore the old `lib/session/` abstractions.
+### Plumbing
 
-### After intake is whole
-
-- Wire rubric → retailer search → results. Currently the JPMC case is hand-wired at `/dev/results`. That becomes dynamic once intake feeds the rubric.
-- Credibility plus reviews filter layer: when a saree passes rubric + search, verify the retailer is on the approved list before it makes the page.
 - Affiliate link setup via Cuelinks (planned, not wired).
-- LLM-synthesized human-readable rubric summary, optional replacement for deterministic templating.
+- Persist intake answers across refresh by adding zustand's `persist` middleware to `lib/intake/store.ts`.
+- Move `/dev/results` to a real `/results` route, retire the dev path.
 
 ---
 
@@ -148,7 +178,7 @@ Under `~/.claude/projects/-Users-sumedhauppal-sareesbysumedha/memory/`:
 
 ## Open questions to raise in the next session
 
-- Once real sarees land on the page, does the 3-card layout still feel right, or do we need a different shape for mobile (stacked) vs desktop (grid)?
-- How do we want to handle the case where the rubric cannot find 3 sarees meeting all filters? (Relax budget? Widen fabric pool? Show fewer than 3?)
-- Does vibe come back as a styling-tip-only input, or do we drop it entirely for V1?
-- Intake form reshape: big or incremental? Sumi's existing stages 1 through 5 will need rework.
+- The cards from live search still call retailers like "Soch" and "Karagiri" by name. Does Sumi want a single neutral retailer chip, or to keep retailer attribution visible (trust signal)?
+- When live search returns 1 or 2 picks instead of 3, do we backfill from the catalog, show fewer cards with a note, or refuse and ask the user to widen budget?
+- Special-occasion follow-up (Q1.5 conditional): worth building in the intake, or do we keep the special-occasion path coarse and let the agentic search figure out subtype from "context the user types in"?
+- Affiliate plumbing via Cuelinks vs direct retailer links: when do we wire it?
