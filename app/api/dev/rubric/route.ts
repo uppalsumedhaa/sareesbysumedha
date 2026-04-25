@@ -6,7 +6,7 @@ const JPMC_FRIEND: Profile = {
   location: 'bangalore',
   season: 'summer',
   time_of_day: 'day',
-  complexion_depth: 'fair',
+  complexion_depth: 'light',
   undertone: 'neutral',
   drape_volume: 'close',
   draping_skill: 'medium_pro',

@@ -5,10 +5,10 @@
 export const welcomeCopy = {
   wordmark: 'zarf',
   // The headline renders a bindi dot in place of the period. Do not include one here.
-  headline: 'sarees are easier than they look',
+  headline: 'your saree matchmaker',
   subhead:
-    "tell me seven things and i'll find three sarees that actually work for you. takes about a minute.",
-  primaryCta: "let's start",
+    'we help you find the perfect saree in minutes. no endless scrolling. no auntie on speed dial required.',
+  primaryCta: "let's go",
   secondaryCta: 'i already own a saree, help me style it',
   secondaryHint: 'coming soon',
 };

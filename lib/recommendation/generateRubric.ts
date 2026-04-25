@@ -1,8 +1,15 @@
 // Rubric generator for the POC.
 // Deterministic: profile in, structured rubric + search queries out.
 // Color theory data is distilled from lib/color/color-theory.md.
+//
+// `Profile` is the legacy 11-field input shape. The intake flow now collects
+// only seven of those fields; `buildRubricFromIntake` at the bottom of this
+// file adapts the new shape (plus a ClimateProfile) into a Profile.
 
-export type Depth = 'fair' | 'wheatish' | 'deep';
+import type { ClimateProfile } from '@/lib/weather/climate';
+import type { IntakeAnswers, JewelryLean } from '@/lib/copy/intake';
+
+export type Depth = 'light' | 'wheatish' | 'deep';
 export type Undertone = 'cool' | 'warm' | 'neutral' | 'unknown';
 export type UseCase = 'everyday_office' | 'everyday_home' | 'special_occasion';
 export type TimeOfDay = 'day' | 'night';
@@ -59,22 +66,22 @@ export interface Rubric {
 // -- Color palette map (from lib/color/color-theory.md) --
 
 type ComplexionBucket =
-  | 'fair_cool' | 'fair_warm' | 'fair_neutral'
+  | 'light_cool' | 'light_warm' | 'light_neutral'
   | 'wheatish_cool' | 'wheatish_warm' | 'wheatish_neutral'
   | 'deep_cool' | 'deep_warm' | 'deep_neutral';
 
 const PALETTE: Record<ComplexionBucket, { flatter: ColorFamily[]; avoid: ColorFamily[]; emphasis: string }> = {
-  fair_cool: {
+  light_cool: {
     flatter: ['red_cool', 'pink_cool', 'blue_cool', 'green_cool', 'purple', 'neutral_cool'],
     avoid: ['yellow_warm', 'orange_earth'],
     emphasis: 'blue-based jewel tones and cool-based reds',
   },
-  fair_warm: {
+  light_warm: {
     flatter: ['red_warm', 'pink_warm', 'orange_earth', 'yellow_warm', 'green_warm', 'neutral_warm'],
     avoid: ['pink_cool', 'blue_cool', 'neutral_cool'],
     emphasis: 'earth and spice tones, warm golds, coral and peach',
   },
-  fair_neutral: {
+  light_neutral: {
     flatter: ['pink_cool', 'red_cool', 'purple', 'green_cool', 'blue_cool', 'red_warm', 'pink_warm'],
     avoid: [],
     emphasis: 'cool pinks and jewel tones lead; widest flattering range so most mid-saturation shades work',
@@ -191,8 +198,8 @@ function saturationPref(profile: Profile): { saturation: Saturation; note: strin
 
   let sat: Saturation = 'mid';
   if (profile.complexion_depth === 'deep') sat = 'vivid';
-  else if (profile.complexion_depth === 'fair' && profile.time_of_day === 'day' && profile.undertone === 'warm') sat = 'mid';
-  else if (profile.complexion_depth === 'fair' && profile.time_of_day === 'day') sat = 'mid';
+  else if (profile.complexion_depth === 'light' && profile.time_of_day === 'day' && profile.undertone === 'warm') sat = 'mid';
+  else if (profile.complexion_depth === 'light' && profile.time_of_day === 'day') sat = 'mid';
   else if (profile.time_of_day === 'night') sat = 'vivid';
 
   return { saturation: sat, note: notes.join('; ') };
@@ -298,4 +305,41 @@ export function generateRubric(profile: Profile): Rubric {
     budget_notes,
     search_queries,
   };
+}
+
+// -- Adapter from new intake shape --
+
+function jewelryToUndertone(j: JewelryLean | undefined): Undertone {
+  if (j === 'gold') return 'warm';
+  if (j === 'silver') return 'cool';
+  return 'neutral';
+}
+
+function climateToSeason(c: ClimateProfile): Season {
+  if (c.rainy) return 'monsoon';
+  if (c.bucket === 'cool') return 'winter';
+  if (c.bucket === 'hot_humid' || c.bucket === 'hot_dry') return 'summer';
+  return c.avgTempC >= 22 ? 'summer' : 'winter';
+}
+
+// Expects every intake field to be defined; caller validates.
+export function buildRubricFromIntake(
+  answers: Required<IntakeAnswers>,
+  climate: ClimateProfile,
+): Rubric {
+  const profile: Profile = {
+    use_case: answers.useCase,
+    location: climate.city,
+    season: climateToSeason(climate),
+    time_of_day: answers.timeOfDay,
+    complexion_depth: answers.skinDepth,
+    undertone: jewelryToUndertone(answers.jewelryLean),
+    draping_skill: answers.drapingSkill,
+    budget_inr_max: answers.budgetInr,
+    // Fields cut from intake. Safe defaults so the legacy filter is lenient.
+    drape_volume: 'either',
+    solids_vs_prints: 'either',
+    fabric_aversions: [],
+  };
+  return generateRubric(profile);
 }

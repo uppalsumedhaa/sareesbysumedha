@@ -4,21 +4,17 @@ import { welcomeCopy } from '@/lib/copy/onboarding';
 export function Welcome() {
   return (
     <main className="relative flex min-h-[100svh] flex-col overflow-hidden bg-cream">
-      {/* Big bindi: hero shape, anchored top-right, bleeding off canvas */}
+      {/* Big bindi: Zarf brand-mark logo on red disc, bleeding off top-right */}
       <div
         aria-hidden="true"
         className="animate-bindi pointer-events-none absolute right-[-24%] top-[-18%] z-0 h-[110vw] w-[110vw] sm:right-[-12%] sm:top-[-24%] sm:h-[64vw] sm:w-[64vw]"
       >
-        <svg viewBox="0 0 400 400" className="h-full w-full">
-          <defs>
-            <radialGradient id="bindi-disc" cx="38%" cy="38%" r="72%">
-              <stop offset="0%" stopColor="#A22139" />
-              <stop offset="62%" stopColor="#8E1929" />
-              <stop offset="100%" stopColor="#5C0E18" />
-            </radialGradient>
-          </defs>
-          <circle cx="200" cy="200" r="200" fill="url(#bindi-disc)" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/brand/zarf-mark-circle.jpg"
+          alt=""
+          className="h-full w-full rounded-full object-cover shadow-[0_12px_40px_-12px_rgba(92,14,24,0.35)]"
+        />
       </div>
 
       {/* Wordmark */}
@@ -44,19 +40,13 @@ export function Welcome() {
               className="animate-reveal block"
               style={{ animationDelay: '500ms' }}
             >
-              sarees
+              your saree
             </span>
             <span
-              className="animate-reveal block"
-              style={{ animationDelay: '650ms' }}
+              className="animate-reveal block whitespace-nowrap"
+              style={{ animationDelay: '700ms' }}
             >
-              are easier
-            </span>
-            <span
-              className="animate-reveal block"
-              style={{ animationDelay: '800ms' }}
-            >
-              than they look
+              matchmaker
               <span
                 aria-hidden="true"
                 className="ml-[0.05em] inline-block h-[0.18em] w-[0.18em] rounded-full bg-bindi align-baseline"

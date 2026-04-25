@@ -23,13 +23,13 @@ No single test is decisive. Agreement across two or three is stronger signal.
 
 ## 2. Complexion by undertone, palette map
 
-Two axes: **depth** (fair, wheatish, deep) and **undertone** (warm, cool, neutral-or-olive). Recommendations below are the consensus across Indian stylist sources.
+Two axes: **depth** (light, wheatish, deep) and **undertone** (warm, cool, neutral-or-olive). Recommendations below are the consensus across Indian stylist sources. "Light" replaces the older word "fair" here, which in Indian context carries colorist baggage (desirability hierarchy) we refuse to reinforce.
 
 | Bucket | Recommend | Neutral / safe | Avoid | Reasoning |
 |---|---|---|---|---|
-| **Fair, cool** | Emerald, royal blue, ruby red (blue-red), fuchsia, lavender, plum, charcoal | True red, blush pink, navy | Pale pastel yellow, beige, icy peach, washed mustard | Cool skin needs blue-based contrast; warm yellows turn skin sallow |
-| **Fair, warm** | Coral, peach, terracotta, mustard, olive, warm ivory, rust, marigold | True red, emerald, soft teal | Icy pastels, pure black, blue-based pinks, cold grey | Warm-golden skin glows with fiery/earthy hues; cool pastels drain it |
-| **Fair, neutral** | Almost all mid-saturation shades; pastel pink, mint, lavender, sage, dusty rose | True red, teal, blush, eggplant | Neon/acid shades that overpower, muddy browns | Balanced undertone, widest range; avoid extremes of saturation |
+| **Light, cool** | Emerald, royal blue, ruby red (blue-red), fuchsia, lavender, plum, charcoal | True red, blush pink, navy | Pale pastel yellow, beige, icy peach, washed mustard | Cool skin needs blue-based contrast; warm yellows turn skin sallow |
+| **Light, warm** | Coral, peach, terracotta, mustard, olive, warm ivory, rust, marigold | True red, emerald, soft teal | Icy pastels, pure black, blue-based pinks, cold grey | Warm-golden skin glows with fiery/earthy hues; cool pastels drain it |
+| **Light, neutral** | Almost all mid-saturation shades; pastel pink, mint, lavender, sage, dusty rose | True red, teal, blush, eggplant | Neon/acid shades that overpower, muddy browns | Balanced undertone, widest range; avoid extremes of saturation |
 | **Wheatish, cool** | Magenta, wine, deep teal, sapphire, plum, cool emerald, berry, silver-ivory | Royal blue, burgundy, charcoal | Mustard, orange, camel, ochre, beige | Blue-based jewel tones contrast cleanly; warm earth tones muddy the complexion |
 | **Wheatish, warm** | Mustard, rust, terracotta, olive, burnt orange, coral, marigold, warm gold, brick red | Maroon, teal, turquoise, bottle green | Icy pastels, fluorescent pink, cool grey, lilac | Warmth stacks on warmth; earth and spice palettes amplify the natural glow |
 | **Wheatish, neutral / olive** | Teal, turquoise, coral, deep magenta, emerald, burgundy, cobalt, plum | Dusty rose, jade, peach, muted red | Yellow-greens (chartreuse), mustard (on olive), pale yellow, grey-beige | Widest flattering range; olive specifically rejects yellow-green which compounds the green cast |
@@ -71,7 +71,7 @@ depth ∈ {fair, wheatish, deep}
 undertone ∈ {cool, warm, neutral_olive}
 ```
 
-The 9 buckets: `fair_cool`, `fair_warm`, `fair_neutral`, `wheatish_cool`, `wheatish_warm`, `wheatish_neutral`, `deep_cool`, `deep_warm`, `deep_neutral`.
+The 9 buckets: `light_cool`, `light_warm`, `light_neutral`, `wheatish_cool`, `wheatish_warm`, `wheatish_neutral`, `deep_cool`, `deep_warm`, `deep_neutral`.
 
 Collapse olive into `neutral_olive` rather than creating a 4th undertone column. Keeps the grid to 9 cells and adds one extra avoid-rule (yellow-greens) on that bucket. Allow the user to pick "not sure" for undertone; fall back to neutral plus universal-safe colors.
 
@@ -101,11 +101,11 @@ neutral_cool      (white, silver, charcoal, grey, black)
 For each complexion bucket, maintain two lists: `flatter` and `avoid`. Both reference `color_family` values. The recommended palette mapping distilled from section 2:
 
 ```
-fair_cool:       flatter=[red_cool, pink_cool, blue_cool, green_cool, purple, neutral_cool]
+light_cool:       flatter=[red_cool, pink_cool, blue_cool, green_cool, purple, neutral_cool]
                  avoid=[yellow_warm, orange_earth, neutral_warm(beige only)]
-fair_warm:       flatter=[red_warm, pink_warm, orange_earth, yellow_warm, green_warm, neutral_warm]
+light_warm:       flatter=[red_warm, pink_warm, orange_earth, yellow_warm, green_warm, neutral_warm]
                  avoid=[pink_cool(icy), blue_cool(icy), neutral_cool(pure black)]
-fair_neutral:    flatter=[red_cool, red_warm, pink_cool, pink_warm, purple, green_cool, blue_cool]
+light_neutral:    flatter=[red_cool, red_warm, pink_cool, pink_warm, purple, green_cool, blue_cool]
                  avoid=[]  # widest range
 wheatish_cool:   flatter=[red_cool, pink_cool, purple, blue_cool, green_cool, neutral_cool]
                  avoid=[orange_earth, yellow_warm, green_warm, neutral_warm(camel)]

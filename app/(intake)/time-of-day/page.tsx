@@ -3,30 +3,30 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TileSelect } from '@/components/ui/tile-select';
-import { intakeNav, useCaseCopy, type UseCase } from '@/lib/copy/intake';
+import { intakeNav, timeOfDayCopy, type TimeOfDay } from '@/lib/copy/intake';
 import { useIntake } from '@/lib/intake/store';
 
-export default function UseCasePage() {
+export default function TimeOfDayPage() {
   const router = useRouter();
-  const setUseCase = useIntake((s) => s.setUseCase);
-  const stored = useIntake((s) => s.useCase);
-  const [value, setValue] = useState<UseCase | null>(stored ?? null);
+  const stored = useIntake((s) => s.timeOfDay);
+  const setTimeOfDay = useIntake((s) => s.setTimeOfDay);
+  const [value, setValue] = useState<TimeOfDay | null>(stored ?? null);
   const ready = value !== null;
 
   return (
     <div className="flex flex-col gap-10 pb-16">
       <section className="flex flex-col gap-4">
         <p className="text-xs uppercase tracking-[0.18em] text-muted">
-          {useCaseCopy.stepLabel}
+          {timeOfDayCopy.stepLabel}
         </p>
         <h1 className="font-serif text-[clamp(1.875rem,6vw,3rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-          {useCaseCopy.heading}
+          {timeOfDayCopy.heading}
         </h1>
-        <p className="text-base text-muted">{useCaseCopy.subhead}</p>
+        <p className="text-base text-muted">{timeOfDayCopy.subhead}</p>
       </section>
 
       <TileSelect
-        options={useCaseCopy.options}
+        options={timeOfDayCopy.options}
         value={value}
         onChange={setValue}
       />
@@ -37,8 +37,8 @@ export default function UseCasePage() {
           disabled={!ready}
           onClick={() => {
             if (!ready || value === null) return;
-            setUseCase(value);
-            router.push('/where');
+            setTimeOfDay(value);
+            router.push('/skin');
           }}
           className="group inline-flex w-full items-center justify-center gap-3 rounded-full bg-bindi px-7 py-5 text-lg font-medium text-cream shadow-[0_10px_30px_-12px_rgba(92,14,24,0.45)] transition-all duration-300 hover:bg-bindi-deep hover:shadow-[0_14px_34px_-10px_rgba(92,14,24,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bindi focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:bg-bindi"
         >
