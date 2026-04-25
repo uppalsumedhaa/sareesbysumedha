@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useShallow } from 'zustand/react/shallow';
 import { useIntake } from '@/lib/intake/store';
 import { runIntake, type RunIntakeResult } from '@/app/(intake)/actions';
 import type { LiveSaree } from '@/lib/search/agentic';
@@ -41,16 +42,18 @@ function answersAreComplete(a: IntakeAnswers): boolean {
 
 export default function ResultsPage() {
   const router = useRouter();
-  const answers = useIntake((s) => ({
-    useCase: s.useCase,
-    city: s.city,
-    month: s.month,
-    timeOfDay: s.timeOfDay,
-    skinDepth: s.skinDepth,
-    jewelryLean: s.jewelryLean,
-    drapingSkill: s.drapingSkill,
-    budgetInr: s.budgetInr,
-  }));
+  const answers = useIntake(
+    useShallow((s) => ({
+      useCase: s.useCase,
+      city: s.city,
+      month: s.month,
+      timeOfDay: s.timeOfDay,
+      skinDepth: s.skinDepth,
+      jewelryLean: s.jewelryLean,
+      drapingSkill: s.drapingSkill,
+      budgetInr: s.budgetInr,
+    })),
+  );
 
   const complete = answersAreComplete(answers);
 
@@ -75,8 +78,7 @@ export default function ResultsPage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [complete, JSON.stringify(answers)]);
+  }, [complete, answers]);
 
   const subhead = useMemo(() => {
     if (!complete || !answers.city || !answers.month || !answers.useCase) return '';
@@ -130,10 +132,16 @@ export default function ResultsPage() {
               </Link>
             </p>
           )}
-          {data?.searchError && (
+          {data?.searchError && data.picksSource === 'catalog' && (
+            <p className="mt-4 rounded-lg border border-muted/30 bg-muted/5 p-4 text-sm text-ink/80">
+              live search couldn&apos;t complete (<span className="font-mono text-xs">{data.searchError}</span>),
+              so these are scored from our verified backup pool. real products, real links, just a smaller catalog.
+            </p>
+          )}
+          {data?.searchError && data.picksSource === 'none' && (
             <p className="mt-4 rounded-lg border border-bindi/30 bg-bindi/5 p-4 text-sm text-ink/80">
               live search hit a snag: <span className="font-mono">{data.searchError}</span>.
-              the rubric still worked — see what it decided below.
+              the rubric still worked, see what it decided below.
             </p>
           )}
         </header>

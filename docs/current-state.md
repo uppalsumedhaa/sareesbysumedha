@@ -120,9 +120,22 @@ Requires `ANTHROPIC_API_KEY` in `.env.local`. Cost: ~$0.05–0.20 per intake. Pa
 - Loading state: *"scouting in-stock sarees across soch, suta, nalli, taneira, karagiri. this takes 15-30 seconds."*
 - Empty/error states with a clear "start over" link
 
-### Fallback catalog (seeded, not yet wired)
+### Fallback catalog (live, scoring + wiring done)
 
-`lib/catalog/data.ts` has 25 hand-verified in-stock sarees from Suta, Karagiri, Soch, and Raw Mango, tagged with fabric / color family / saturation / use cases / seasons (schema in `lib/catalog/types.ts`). Intended use: when live search throws (missing API key, rate limit, empty result set), the server action scores the catalog against the rubric and returns the top 3. The scoring function and the wiring in `actions.ts` are still pending.
+`lib/catalog/data.ts` has 25 hand-verified in-stock sarees from Suta, Karagiri, Soch, and Raw Mango, tagged with fabric / color family / saturation / **embellishment** / use cases / seasons (schema in `lib/catalog/types.ts`).
+
+`lib/catalog/score.ts` scores the catalog deterministically:
+- Hard filters: budget cap, use case match, embellishment level (heavy is hard-failed for everyday_office and everyday_home — see Embellishment dimension below).
+- Soft scoring: color flatter (+3), color avoid (-5), fabric candidate (+2), fabric excluded (-3), saturation match (+1), season ok (+1), price-fit bonus when ≤ 80% of budget (+0.5).
+- Diversity pass: walks the sorted list, picks each saree only if its fabric hasn't been seen yet — stops 3-of-the-same-fabric outputs.
+
+`runIntake` in `app/(intake)/actions.ts` calls live search first; on failure or empty result, falls back to `pickFromCatalog`. The result includes `picksSource: 'live' | 'catalog' | 'none'` so the page can render an honest "scored from our verified backup pool" banner when the fallback fires.
+
+Known catalog gap: the everyday_office tier is **mul-cotton-dominant** (7 of 11 candidates from the seed pool). The diversity pass surfaces non-cotton picks but the alternates are thin. Real catalog needs more linen / cotton-silk / chanderi options at office price points.
+
+### Embellishment dimension
+
+Added to `CatalogSaree` and to the live-search system prompt after Sumi caught a "Navy Blue Chiffon Floral Print Saree With Stone Work" being recommended for a daytime office brief. Stone work / mirror work / sequins / heavy zari / dense embroidery is `embellishment: 'heavy'`; small prints, light thread work, woven borders are `subtle`; plain woven is `plain`. Heavy hard-fails for everyday_office and everyday_home, both in the catalog scorer and in the agentic search prompt. See `feedback_embellishment_disqualifies_everyday.md` in user memory.
 
 ### Old flow
 
@@ -142,9 +155,11 @@ The pre-lock 5-stage flow was deleted in commit `3b7394a`. The intake under `app
 
 ### Immediate
 
-1. **Catalog scoring + fallback wiring.** `lib/catalog/data.ts` has 25 verified products. Need to add `lib/catalog/score.ts` with a deterministic scoring function (hard filter on budget + use case; soft scoring on color flatter/avoid, fabric match, saturation match, season match; diversity pass for retailer + fabric variety). Wire into `runIntake` so the server action returns catalog picks when live search throws. Without this, a user without `ANTHROPIC_API_KEY` set sees an error banner.
+1. **Expand the everyday_office catalog tier.** Mul-cotton-heavy seed pool means the diversity pass under-delivers variety. Need ~5-8 more entries: Mangalagiri at office price, Tant cotton with woven borders, Chanderi cotton (not silk) under ₹5k, Maheshwari cotton-silk, light handloom silk under ₹6k, plain crepe / silk-blend office wear. Skip anything heavy on embellishment.
 
 2. **Move the rubric debug panel behind a dev flag.** It's currently always visible at the bottom of `/dev/results`. For real users it should hide unless `?debug=1` or the user is on a localhost build. The panel exists for Sumi's verification, not the customer.
+
+3. **Verify embellishment tagging is right across all 25 entries.** I tagged on best-effort visual + product-name read; Sumi should spot-check a few. Especially: did I correctly mark which Suta chanderi-silks are subtle vs which would read as more decorated?
 
 ### Quality and trust
 
