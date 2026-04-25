@@ -160,10 +160,17 @@ export default function ResultsPage() {
           </section>
         )}
 
-        {data && data.picks.length === 0 && !data.searchError && (
+        {data && data.picks.length === 0 && (
           <section className="rounded-lg border border-muted/20 bg-white p-6">
             <p className="text-ink">
-              the scout came back empty. that&apos;s on us. try widening the budget or picking a different month.
+              {data.searchError ? (
+                <>
+                  the live search took too long, and our backup catalog doesn&apos;t go high enough for this combination yet. try a budget around ₹3,000-5,000, or pick a different use case. you can also{' '}
+                  <Link href="/use-case" className="underline">refresh</Link> and we&apos;ll try the live search again.
+                </>
+              ) : (
+                <>the scout came back empty. that&apos;s on us. try widening the budget or picking a different month.</>
+              )}
             </p>
           </section>
         )}

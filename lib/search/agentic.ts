@@ -52,7 +52,7 @@ APPROVED RETAILERS (only these — reject any product not on this list):
 
 WORK STEPS:
 1. Use web_search to find candidate products matching the rubric's fabric candidates, flatter color families, and budget target band.
-2. Use web_fetch on promising product URLs to verify price, image URL, and in-stock status. Discard anything that's out of stock or not on an approved retailer.
+2. Use web_fetch ONLY when the search snippet doesn't already show the price and in-stock signal. Most retailer search snippets contain both — fetch is expensive and slow, so don't fetch for verification when the snippet has what you need. Aim for at most 3 web_fetch calls in the whole task.
 3. DIVERSITY (hard rule, not a preference):
    - The three picks must come from at least two different retailers. Three picks from one retailer is wrong, even if quality is high.
    - The three picks must use at least two different fabrics. Three banarasis is wrong, three mul cottons is wrong.
@@ -156,8 +156,13 @@ export async function findLiveSarees(
     const stream = client.messages.stream(
       {
         model: 'claude-sonnet-4-6',
-        max_tokens: 16000,
-        thinking: { type: 'adaptive' },
+        // 4k is comfortably above the JSON output (~600 tokens) plus tool-use
+        // bookkeeping. Earlier 16k was burning budget on extended thinking we
+        // don't need — the search loop is the actual work.
+        max_tokens: 4000,
+        // No `thinking` block — the model's reasoning is its tool-call sequence,
+        // not extended chain-of-thought. Adaptive thinking added 10-30s with
+        // marginal quality gain on this task.
         system: [
           {
             type: 'text',
